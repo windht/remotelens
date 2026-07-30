@@ -1,0 +1,11 @@
+node_modules/
+.output/
+.wrangler/
+dist/
+coverage/
+playwright-report/
+test-results/
+worker-configuration.d.ts
+.dev.vars
+.env
+.DS_Store

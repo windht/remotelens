@@ -1,0 +1,4 @@
+# Copy to .dev.vars only when local secrets are required.
+# Phase 0–1 fixture and live-fetch validation does not require DeepSeek.
+DEEPSEEK_API_KEY=
+API_CURSOR_SECRET=
