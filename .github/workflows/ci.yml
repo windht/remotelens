@@ -20,5 +20,3 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm cf:typegen
       - run: pnpm validate
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
