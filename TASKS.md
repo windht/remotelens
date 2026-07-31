@@ -268,7 +268,7 @@ are complete.
     concise product overview, live links, Agent Skill installation, public API
     examples, local setup, validation, architecture, and contribution guidance.
   - Acceptance: `ACC-OSS-002`
-- [ ] **P9-003 — Pass the open-source release gate**
+- [x] **P9-003 — Pass the open-source release gate**
   - Validate documentation formatting and links, rerun repository secret and
     history checks, run relevant technical validation, synchronize evidence,
     and confirm process cleanup.

@@ -2,11 +2,24 @@
 
 ## Current status
 
-**Phase:** Phase 10 — JS Guru Jobs source and clean index presentation<br>
-**Current task:** None — P10-001 through P10-005 are complete<br>
-**Current acceptance:** None — all Phase 10 acceptance cases passed<br>
-**Goal status:** Phase 10 complete; the independent Phase 9 release gate remains
-blocked only on the destructive-pruning decision
+**Phase:** Phase 9 — Open-source release hygiene<br>
+**Current task:** None — P9-001 through P9-003 are complete<br>
+**Current acceptance:** None — all Phase 9 and Phase 10 acceptance cases passed<br>
+**Goal status:** Complete
+
+### Public GitHub release completed — 2026-08-01
+
+- Created the public repository `https://github.com/windht/remotelens`.
+- Set the repository homepage to `https://remotelens.co`.
+- Set the public description to: “A public, read-only index of remote developer
+  jobs with structured filters, source attribution, API feeds, and an Agent
+  Skill.”
+- Rechecked all reachable commits against the current local DeepSeek key and
+  common credential/private-key formats without printing secret values; no
+  reachable match was found and no populated secret environment file is
+  tracked.
+- Pushed local `main` normally. The local-only unreachable secret blob was not
+  pruned and was not transferred by the push.
 
 ### MIT license selected — 2026-08-01
 
@@ -100,9 +113,9 @@ blocked only on the destructive-pruning decision
 
 ## Blockers
 
-- Destructive pruning of all unreachable Git objects requires explicit
-  authorization. A normal push is safe from the unreachable blob, but a full
-  `.git` directory archive would not be.
+- None for the public GitHub release. The local-only unreachable secret blob
+  remains relevant only if the complete `.git` directory is archived or shared;
+  it is not part of the public repository.
 
 ### Domain/install correction started — 2026-07-31
 
@@ -543,9 +556,8 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 
 ## Next
 
-- Phase 10 has no remaining task or acceptance case.
-- The independent Phase 9 release gate can continue after the owner explicitly
-  decides whether to destructively prune the unreachable Git object.
+- None. Phase 9 and Phase 10 implementation, acceptance, and publication are
+  complete.
 
 ## Known risks
 
@@ -566,6 +578,5 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 ## Blockers
 
 - Phase 10 has no blocker.
-- Phase 9 requires an explicit decision before destructively pruning the
-  unreachable Git blob containing a previously populated secret. The blob is
-  not reachable by a normal push.
+- Phase 9 has no public-release blocker. The local-only unreachable Git blob is
+  not reachable from the published repository and was not transferred.

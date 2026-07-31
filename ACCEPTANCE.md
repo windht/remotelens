@@ -2299,7 +2299,7 @@ credentials are required.
 
 **Priority:** Critical<br>
 **Automation:** CLI validation<br>
-**Status:** Blocked
+**Status:** Passed
 
 **Expected result**
 
@@ -2312,12 +2312,12 @@ credentials are required.
 
 **Last result**
 
-- Blocked 2026-08-01 on one remaining release-owner decision. The owner selected
-  MIT, and the standard license is recorded in `LICENSE`, `package.json`, and
-  `README.md`. Removing the local-only unreachable secret blob still requires
-  destructive pruning of all unreachable Git recovery objects. Full validation
-  and all non-destructive release checks pass. Minimum input: authorize or
-  decline unreachable-object pruning.
+- Passed 2026-08-01. The owner selected MIT and explicitly requested normal
+  publication to the public `windht/remotelens` repository. The standard license
+  is recorded in `LICENSE`, `package.json`, and `README.md`; validation and the
+  final reachable-history credential scan passed. The local-only unreachable
+  secret blob was not pruned and cannot be transferred by the normal push used
+  for publication.
 
 ### ACC-OPS-002 — Phase 2 validation gate
 
