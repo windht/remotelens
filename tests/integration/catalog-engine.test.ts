@@ -16,17 +16,21 @@ async function record(
 ): Promise<NormalizedSourceRecord> {
   const base = {
     attribution:
-      provider === 'remote_ok'
-        ? ('Remote OK' as const)
-        : ('We Work Remotely' as const),
+      provider === 'jsguru'
+        ? ('JS Guru Jobs' as const)
+        : provider === 'remote_ok'
+          ? ('Remote OK' as const)
+          : ('We Work Remotely' as const),
     company: 'Kumo Systems',
     descriptionHtml: '<p>Safe description.</p>',
     descriptionText: 'Safe description.',
     labels: [],
     listingUrl:
-      provider === 'remote_ok'
-        ? `https://remoteok.com/remote-jobs/${sourceKey}`
-        : `https://weworkremotely.com/remote-jobs/${sourceKey}`,
+      provider === 'jsguru'
+        ? `https://jsgurujobs.com/jobs/${sourceKey}`
+        : provider === 'remote_ok'
+          ? `https://remoteok.com/remote-jobs/${sourceKey}`
+          : `https://weworkremotely.com/remote-jobs/${sourceKey}`,
     provider,
     rawTitle: 'Senior Backend Engineer',
     sourceKey,
@@ -90,6 +94,50 @@ describe('fixture-driven catalog ingestion', () => {
       ],
     })
     expect(catalog.candidates).toHaveLength(1)
+  })
+
+  it('routes JS Guru Jobs through the shared lifecycle and cross-source candidate flow', async () => {
+    const catalog = new MemoryCatalog()
+    const jsguru = await record('jsguru', '551')
+    const remoteOk = await record('remote_ok', '101')
+    const wwr = await record('wwr', 'wwr-101')
+
+    const first = await catalog.runCycle({
+      cycleKey: 'three-provider-seed',
+      now: 1_000,
+      observations: [
+        observation('jsguru', [jsguru]),
+        observation('remote_ok', [remoteOk]),
+        observation('wwr', [wwr]),
+      ],
+    })
+    const repeated = await catalog.runCycle({
+      cycleKey: 'three-provider-repeat',
+      now: 2_000,
+      observations: [
+        observation('jsguru', [jsguru]),
+        observation('remote_ok', [remoteOk]),
+        observation('wwr', [wwr]),
+      ],
+    })
+
+    expect(first.status).toBe('successful')
+    expect(repeated.providerRuns.map((run) => run.unchangedCount)).toEqual([
+      1, 1, 1,
+    ])
+    expect(catalog.candidates).toHaveLength(3)
+
+    await catalog.runCycle({
+      cycleKey: 'suspend-jsguru',
+      now: 3_000,
+      observations: [
+        observation('jsguru', [], { enabled: false }),
+        observation('remote_ok', [remoteOk]),
+        observation('wwr', [wwr]),
+      ],
+    })
+    expect(catalog.health.get('jsguru')?.status).toBe('suspended')
+    expect(catalog.records.get('jsguru:551')?.status).toBe('active')
   })
 
   it('rejects duplicate active claims and allows only expired lock reclaim', () => {

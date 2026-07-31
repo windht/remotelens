@@ -1975,7 +1975,7 @@ credentials are required.
   Desktop and 390×844 screenshots confirmed the asymmetric hero, actions,
   promise ledger, latest-job preview, and dedicated Index action.
 
-### ACC-REFINE-003 — Index filters are sticky, horizontal, and shareable
+### ACC-REFINE-003 — Index filters are bounded, responsive, and shareable
 
 **Priority:** Critical<br>
 **Automation:** Playwright desktop/mobile and JavaScript-disabled coverage<br>
@@ -1988,15 +1988,15 @@ credentials are required.
 **Steps**
 
 1. Open `/jobs`.
-2. Scroll the result ledger and inspect the filter bar.
+2. Inspect the bounded filter panel and then scroll the result cards.
 3. Choose country, role, scope, employment, seniority, and sort values.
 4. Apply filters and reload the resulting URL.
 
 **Expected result**
 
 - The Index has no oversized editorial hero or permanent sidebar.
-- The filter bar is horizontal on desktop, compact on mobile, and sticky while
-  results scroll.
+- The filter panel uses a compact desktop grid and a single-column mobile
+  layout without floating over results.
 - Applied exact filters are encoded in the GET URL and survive reload.
 
 **Evidence**
@@ -2005,9 +2005,9 @@ credentials are required.
 
 **Last result**
 
-- Passed 2026-07-31. Desktop/mobile Playwright confirmed the sticky horizontal
-  toolbar, compact mobile row, shareable GET parameters, reload persistence,
-  and absence of the former oversized hero/sidebar composition.
+- Passed 2026-08-01 after the clean-index refinement. Desktop/mobile Playwright
+  confirmed the bounded responsive panel, shareable GET parameters, reload
+  persistence, and absence of the former oversized hero/sidebar composition.
 
 ### ACC-REFINE-004 — Index SSR is bounded and later pages load incrementally
 
@@ -2085,7 +2085,7 @@ credentials are required.
 
 **Prerequisites**
 
-- Job rows from Remote OK and WWR are available.
+- Job rows from JS Guru Jobs, Remote OK, and WWR are available.
 
 **Steps**
 
@@ -2095,7 +2095,7 @@ credentials are required.
 
 **Expected result**
 
-- Remote OK and WWR rows include local favicon-derived provider marks with
+- JS Guru Jobs, Remote OK, and WWR rows include local provider marks with
   accessible labels and no third-party image request.
 - The installation page shows
   `npx skills add windht/remotelens`.
@@ -2427,3 +2427,230 @@ credentials are required.
   bootstrap, public HTTP/Chromium reads, security headers, operations runbook,
   and non-destructive WWR suspension/recovery all passed. No required blocker
   remains for the in-scope Phase 6 delivery.
+
+## Phase 10 — JS Guru Jobs and clean index
+
+### ACC-JSGURU-001 — Source contract is bounded and attributable
+
+**Priority:** Critical<br>
+**Automation:** Unit test and documentation review<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- Public JS Guru Jobs pages are reachable.
+- The provider is enabled in a test environment.
+
+**Steps**
+
+1. Inspect the configured provider endpoints.
+2. Run the JS Guru Jobs adapter fixture test.
+3. Review source policy and application-routing documentation.
+
+**Expected result**
+
+- The adapter fetches exactly `https://jsgurujobs.com/jobs`,
+  `https://jsgurujobs.com/jobs?page=2`, and
+  `https://jsgurujobs.com/jobs?page=3`.
+- Stable `/jobs/:id` listing identities are retained.
+- Every normalized record is attributed to JS Guru Jobs and links back to its
+  source listing.
+- Raw HTML payloads are not persisted.
+
+**Evidence**
+
+- Adapter tests, `docs/source-policy.md`, and `docs/operations.md`.
+
+**Last result**
+
+- Passed 2026-08-01. Unit assertions and documentation readback confirmed
+  exactly three server-rendered pages, stable numeric listing identity, visible
+  `JS Guru Jobs` attribution, source-listing routing, and no raw HTML
+  persistence.
+
+### ACC-JSGURU-002 — Server-rendered listings normalize deterministically
+
+**Priority:** Critical<br>
+**Automation:** Vitest fixture and bounded live-fetch test<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- Sanitized page fixtures exist for representative valid, duplicate, and
+  malformed listings.
+
+**Steps**
+
+1. Parse all three fixtures.
+2. Inspect normalized title, company, listing URL, labels, description, and
+   publication data.
+3. Repeat parsing and compare output.
+
+**Expected result**
+
+- Valid job cards normalize without browser execution.
+- Duplicate listing IDs across pages collapse within the provider.
+- Malformed cards are rejected with bounded counts.
+- Sanitization removes executable markup and deterministic payload hashes are
+  stable across repeated runs.
+
+**Evidence**
+
+- `tests/unit/adapters.test.ts` and JS Guru Jobs fixture.
+
+**Last result**
+
+- Passed 2026-08-01. Fixture coverage confirmed browser-free parsing,
+  duplicate-ID aggregation, malformed-card rejection, executable-markup
+  sanitization, and deterministic hashes. The bounded live check fetched 30
+  records from 3/3 HTTP 200 pages with 0 rejected and 0 duplicate records.
+
+### ACC-JSGURU-003 — Provider participates in lifecycle and deduplication
+
+**Priority:** Critical<br>
+**Automation:** Vitest integration tests<br>
+**Status:** Passed
+
+**Steps**
+
+1. Run a complete three-provider ingestion cycle.
+2. Repeat the cycle with an unchanged JS Guru Jobs observation.
+3. Create an equivalent cross-source record and rebuild canonical jobs.
+4. Suspend only JS Guru Jobs and rebuild again.
+
+**Expected result**
+
+- The provider has independent health, lock, lifecycle, and suspension state.
+- Unchanged records remain idempotent.
+- JS Guru Jobs records enter the existing deterministic/semantic cross-source
+  dedupe flow instead of creating a separate catalog.
+- Suspension hides unsupported source-only jobs without deleting retained
+  source history.
+
+**Evidence**
+
+- Ingestion and canonical integration tests.
+
+**Last result**
+
+- Passed 2026-08-01. Integration coverage confirmed independent provider
+  health and suspension, idempotent repeated observations, canonical
+  cross-source deduplication, and lifecycle behavior without deleting retained
+  source history.
+
+### ACC-JSGURU-004 — Public attribution and source filters include JS Guru Jobs
+
+**Priority:** Critical<br>
+**Automation:** API contract and Playwright tests<br>
+**Status:** Passed
+
+**Steps**
+
+1. Open the Index with a catalog containing a JS Guru Jobs source.
+2. Filter by `source=jsguru`.
+3. Open the matching job detail and public API record.
+4. Inspect source label and destination.
+
+**Expected result**
+
+- The structured source selector accepts JS Guru Jobs.
+- Job rows, detail provenance, API records, taxonomy, and metadata use the
+  stable `jsguru` key and visible `JS Guru Jobs` attribution.
+- The source listing destination is preserved.
+
+**Evidence**
+
+- API tests and Playwright artifacts.
+
+**Last result**
+
+- Passed 2026-08-01. API and browser coverage confirmed the `jsguru` structured
+  source filter, taxonomy and metadata exposure, visible row/detail
+  attribution, and preserved source destinations.
+
+### ACC-CLEAN-INDEX-001 — Index is a clean, separated directory
+
+**Priority:** Critical<br>
+**Automation:** Playwright plus screenshot review<br>
+**Status:** Passed
+
+**Steps**
+
+1. Open `/jobs` at a desktop viewport.
+2. Inspect the heading, filter panel, result list, and first three jobs.
+3. Tab through filters and job links.
+
+**Expected result**
+
+- The page uses one legible sans-serif family with no decorative serif display.
+- Filters occupy one clearly bounded panel.
+- Every job occupies a clearly separated bordered card.
+- Title, company, eligibility, employment, salary when known, tags, age, and
+  source attribution have an obvious scan order.
+- Exact structured filtering remains; no keyword or `q` search is introduced.
+
+**Evidence**
+
+- Stitch screen `c3a57344463d4ca19a18d44e0c2fdeac` and Playwright
+  screenshots.
+
+**Last result**
+
+- Passed 2026-08-01. Desktop Chromium and screenshot review confirmed the
+  Geist-only directory hierarchy, bounded filter panel, individually bordered
+  cards, clear scan order, and absence of keyword search.
+
+### ACC-CLEAN-INDEX-002 — Clean index remains responsive and accessible
+
+**Priority:** Critical<br>
+**Automation:** Playwright and axe<br>
+**Status:** Passed
+
+**Steps**
+
+1. Open `/jobs` at 390 CSS pixels.
+2. Apply a structured filter, expand advanced filters, and open a job.
+3. Check horizontal overflow, touch targets, focus visibility, headings, and
+   serious/critical axe findings.
+
+**Expected result**
+
+- Controls and cards collapse to one column with no clipped content or
+  horizontal overflow.
+- Core filtering still works without JavaScript.
+- Interactive targets are at least 44px and visible focus is retained.
+- No serious or critical accessibility violation is introduced.
+
+**Evidence**
+
+- Mobile Playwright screenshot, no-JavaScript case, and axe result.
+
+**Last result**
+
+- Passed 2026-08-01. Mobile, no-JavaScript, overflow, focus, and axe coverage
+  passed with no horizontal overflow and no serious or critical accessibility
+  violations.
+
+### ACC-OPS-010 — Phase 10 validation gate
+
+**Priority:** Critical<br>
+**Automation:** CLI, Vitest, Playwright, live fetch, and build<br>
+**Status:** Passed
+
+**Expected result**
+
+- All Phase 10 implementation tasks, technical checks, relevant acceptance
+  cases, tracker updates, and process cleanup pass.
+
+**Evidence**
+
+- `TASKS.md`, `ACCEPTANCE.md`, `WORKLOG.md`, command output, and browser
+  artifacts.
+
+**Last result**
+
+- Passed 2026-08-01. `pnpm validate` passed formatting, lint, TypeScript, 52
+  Vitest tests, 5 migration assertions, and the production build.
+  `pnpm test:e2e` passed 18 cases with 10 documented environment-gated skips.
+  Live fetch, local D1 migration, Cloudflare type generation, both deployment
+  dry-runs, final formatting, diff hygiene, and process cleanup also passed.

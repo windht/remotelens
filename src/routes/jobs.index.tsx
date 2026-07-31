@@ -64,10 +64,12 @@ const SENIORITY_OPTIONS = [
   ...SENIORITIES.map((value) => option(value)),
 ]
 const SOURCE_OPTIONS = [
-  option('', 'Either provider'),
-  ...SOURCE_KEYS.map((value) =>
-    option(value, value === 'wwr' ? 'We Work Remotely' : 'Remote OK'),
-  ),
+  option('', 'Any provider'),
+  ...SOURCE_KEYS.map((value) => {
+    if (value === 'wwr') return option(value, 'We Work Remotely')
+    if (value === 'jsguru') return option(value, 'JS Guru Jobs')
+    return option(value, 'Remote OK')
+  }),
 ]
 const SORT_OPTIONS = [
   option('recently_discovered', 'Recently discovered'),
@@ -102,12 +104,12 @@ function JobsPage() {
                 ? 'Local fixture index'
                 : 'Live catalog'}
           </p>
-          <h1>
-            {catalog.total} {catalog.total === 1 ? 'job' : 'jobs'}
-          </h1>
+          <h1>Available remote engineering jobs</h1>
         </div>
         <p className="index-heading-copy">
-          Exact filters, source evidence, and no promoted listings.
+          {catalog.total.toLocaleString('en')}{' '}
+          {catalog.total === 1 ? 'job' : 'jobs'} found. Exact filters, visible
+          source evidence, and no promoted listings.
         </p>
       </header>
 

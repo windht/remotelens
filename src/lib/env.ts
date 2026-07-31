@@ -10,6 +10,7 @@ export const runtimeEnvSchema = z.object({
   APP_ENV: z.enum(['development', 'test', 'production']),
   PUBLIC_SITE_URL: z.url(),
   PUBLIC_API_BASE_URL: z.url(),
+  ENABLE_SOURCE_JSGURU: booleanString,
   ENABLE_SOURCE_REMOTE_OK: booleanString,
   ENABLE_SOURCE_WWR: booleanString,
   INGESTION_LOCK_TTL_SECONDS: positiveIntegerString,

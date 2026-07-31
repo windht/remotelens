@@ -120,7 +120,7 @@ function insertSource(
     company: string
     description: string
     id: string
-    provider: 'remote_ok' | 'wwr'
+    provider: 'jsguru' | 'remote_ok' | 'wwr'
     sourceKey: string
     title: string
   },

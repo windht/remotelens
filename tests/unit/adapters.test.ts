@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import { JSGURU_PAGE_FIXTURES } from '../fixtures/jsguru'
 import { REMOTE_OK_FIXTURE } from '../fixtures/remote-ok'
 import { wwrFeed } from '../fixtures/wwr'
+import {
+  JSGURU_PAGES,
+  parseJsguruPages,
+} from '../../src/ingestion/adapters/jsguru'
 import {
   isRemoteOkDeveloperJob,
   parseRemoteOkPayload,
@@ -10,6 +15,50 @@ import {
   parseWwrFeeds,
   splitWwrTitle,
 } from '../../src/ingestion/adapters/wwr'
+
+describe('JS Guru Jobs adapter', () => {
+  it('configures exactly the first three server-rendered job pages', () => {
+    expect(JSGURU_PAGES).toEqual([
+      'https://jsgurujobs.com/jobs',
+      'https://jsgurujobs.com/jobs?page=2',
+      'https://jsgurujobs.com/jobs?page=3',
+    ])
+  })
+
+  it('parses cards with Cheerio and collapses repeated listing IDs', async () => {
+    const pages = JSGURU_PAGE_FIXTURES.map((payload, index) => ({
+      payload,
+      url: JSGURU_PAGES[index]!,
+    }))
+    const result = await parseJsguruPages(pages)
+
+    expect(result.fetchedCount).toBe(4)
+    expect(result.rejectedCount).toBe(1)
+    expect(result.records).toHaveLength(2)
+    expect(result.records[1]).toMatchObject({
+      attribution: 'JS Guru Jobs',
+      company: 'Kumo Systems',
+      listingUrl: 'https://jsgurujobs.com/jobs/551',
+      provider: 'jsguru',
+      sourceKey: '551',
+      title: 'Senior Backend Engineer',
+    })
+    expect(result.records[1]?.descriptionHtml).toContain(
+      '$160,000 - $210,000 per year',
+    )
+    expect(result.records[1]?.descriptionHtml).not.toMatch(
+      /script|onerror|<img/i,
+    )
+    expect(result.records[1]?.labels).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ normalized: 'rust' }),
+        expect.objectContaining({ normalized: 'distributed-systems' }),
+        expect.objectContaining({ normalized: 'worldwide' }),
+      ]),
+    )
+    expect(await parseJsguruPages(pages)).toEqual(result)
+  })
+})
 
 describe('Remote OK adapter', () => {
   it('requires both a positive title marker and a qualifying provider tag', () => {

@@ -2,10 +2,51 @@
 
 ## Current status
 
-**Phase:** Phase 9 — Open-source release hygiene<br>
-**Current task:** P9-003 — Pass the open-source release gate<br>
-**Current acceptance:** ACC-OSS-003<br>
-**Goal status:** Blocked on destructive-pruning authorization and license choice
+**Phase:** Phase 10 — JS Guru Jobs source and clean index presentation<br>
+**Current task:** None — P10-001 through P10-005 are complete<br>
+**Current acceptance:** None — all Phase 10 acceptance cases passed<br>
+**Goal status:** Phase 10 complete; the independent Phase 9 release gate remains
+blocked on destructive-pruning authorization and license choice
+
+### JS Guru Jobs and clean-index work completed — 2026-08-01
+
+- The user requested JS Guru Jobs as a data source using only the first three
+  server-rendered job pages, followed by the existing normalization and
+  deduplication flow with visible attribution.
+- Live read-only inspection confirmed `/jobs`, `/jobs?page=2`, and
+  `/jobs?page=3` return complete server-rendered listing cards without browser
+  execution.
+- The Stitch design workflow created `RemoteLens Clean Index 2026` as asset
+  `8629006953645284097` in the existing RemoteLens project and generated
+  selected desktop screen `c3a57344463d4ca19a18d44e0c2fdeac`.
+- The selected direction uses Geist sans-serif, a conventional `72rem` content
+  column, a bounded filter panel, and individually bordered job cards. It
+  preserves exact structured filtering and rejects a keyword search, large
+  editorial hero, serif typography, decorative provenance rails, and sticky
+  blur.
+- Phase 10 implementation and acceptance coverage was added before code changes.
+- Added the Cheerio-backed `jsguru` adapter and fetched exactly `/jobs`,
+  `/jobs?page=2`, and `/jobs?page=3`; numeric listing IDs are aggregated before
+  the existing cross-source canonical deduplication flow.
+- Added the independent provider flag, health/lifecycle state, Workflow
+  observation, API/source filters, metadata, documentation, and D1 migration
+  `0002_jsguru_provider.sql`.
+- The bounded live check fetched 30 admitted listings from 3/3 HTTP 200 pages
+  with 0 rejected and 0 duplicate records. The deterministic aggregate hash was
+  `1854787deefacc0ab072ca9d659a40a3eb5fec8b4a24716d4bd0289ef5109879`.
+- Applied the selected Geist clean-index presentation with neutral surfaces, a
+  `72rem` content width, one bounded filter panel, individually bordered job
+  cards, and visible `via JS Guru Jobs` attribution.
+- `pnpm validate` passed formatting, ESLint, TypeScript, 52/52 Vitest tests,
+  5/5 migration assertions, and the production build.
+- `pnpm test:e2e` passed 18 cases with 10 environment-gated skips, including
+  desktop/mobile, no-JavaScript, overflow, source attribution, and axe coverage
+  with no serious or critical violations.
+- `pnpm ingest:live-check`, `pnpm db:migrate:local`, `pnpm cf:typegen`,
+  `pnpm cf:dry-run`, `pnpm cf:prod-dry-run`, `pnpm format:check`, and
+  `git diff --check` passed.
+- Production deployment and remote production migration were intentionally not
+  performed; validation stopped at the local migration and production dry-run.
 
 ### Open-source release audit started — 2026-07-31
 
@@ -461,6 +502,15 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
   `test-results/phase7-production-Phase-7--07a84-R-then-appends-cursor-pages-*/`
   and
   `test-results/phase7-production-Phase-7--023d4-edirects-API-and-Skill-copy-*/`.
+- Phase 10 adapter: `src/ingestion/adapters/jsguru.ts`.
+- Phase 10 migration: `drizzle/migrations/0002_jsguru_provider.sql`.
+- Phase 10 desktop/mobile screenshots:
+  `test-results/public-shell-public-shell--6a92a--has-no-horizontal-overflow-desktop-chromium/jobs.png`
+  and the corresponding mobile Chromium result directory.
+- Phase 10 automated contracts: `tests/unit/adapters.test.ts`,
+  `tests/integration/catalog-engine.test.ts`,
+  `tests/integration/canonical-jobs.test.ts`,
+  `tests/api/public-api.test.ts`, and `tests/e2e/public-shell.spec.ts`.
 
 ## Process cleanup
 
@@ -475,11 +525,16 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 - The task-owned in-app browser verification tab was finalized; zero tabs
   remained. Production Playwright browsers exited after the four acceptance
   cases, and TCP port 4173 was not listening after the local suite.
+- Final Phase 10 readback confirmed TCP ports 4173 and 8787 are not listening
+  and no task-owned preview, Wrangler, Workerd, Playwright, or browser process
+  remains.
 
 ## Next
 
-- None. All required Phase 0–7 tasks, acceptance cases, validation, and tracker
-  updates are complete.
+- Phase 10 has no remaining task or acceptance case.
+- The independent Phase 9 release gate can continue after the owner selects a
+  license and explicitly decides whether to destructively prune the unreachable
+  Git object.
 
 ## Known risks
 
@@ -499,6 +554,8 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 
 ## Blockers
 
-- None. The user authorized reuse of the existing DeepSeek key and confirmed
-  rate-limit namespace `1001`; production deployment, ingestion, public reads,
-  and suspension/recovery were subsequently verified.
+- Phase 10 has no blocker.
+- Phase 9 remains blocked because the repository has no owner-selected license.
+- Phase 9 also requires explicit authorization before destructively pruning the
+  unreachable Git blob containing a previously populated secret. The blob is
+  not reachable by a normal push.

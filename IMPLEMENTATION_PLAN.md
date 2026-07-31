@@ -19,7 +19,8 @@ tracking, or auto-apply behavior.
 - Cloudflare D1 with Drizzle migrations as the live catalog source of truth.
 - Cloudflare Workflows scheduled directly with `0 */12 * * *`.
 - Zod at external input and environment boundaries.
-- Remote OK and exactly four approved We Work Remotely programming RSS feeds.
+- JS Guru Jobs pages 1–3, Remote OK, and exactly four approved We Work
+  Remotely programming RSS feeds.
 - One mutable live catalog with a cache epoch; no snapshots or revisions.
 - Structured discovery only; no text, title, description, vector, or semantic
   search.
@@ -180,12 +181,27 @@ tracking, or auto-apply behavior.
 
 1. Run fixture-driven full, repeated, partial, failure, missing, close, lock,
    feature-flag, and cache-epoch integration tests.
-2. Run one bounded live development fetch from Remote OK and all four WWR feeds
-   without persisting raw payloads.
+2. Run one bounded live development fetch from JS Guru Jobs pages 1–3, Remote
+   OK, and all four WWR feeds without persisting raw payloads.
 3. Verify normalized developer records and record only counts, hashes, response
    metadata, and bounded errors.
 4. Run formatting, lint, typecheck, unit/integration tests, migration checks,
    production build, and affected Playwright cases.
+
+## Phase 10 — JS Guru Jobs and clean index
+
+1. Add a Cheerio adapter that fetches only the first three server-rendered JS
+   Guru Jobs result pages, uses numeric listing IDs for source-local identity,
+   aggregates pagination overlap, sanitizes card excerpts, and retains visible
+   attribution.
+2. Add independent `jsguru` health, suspension, Workflow, API, taxonomy,
+   source-filter, and canonical/deduplication support.
+3. Apply the reviewed Stitch clean-index system: Geist sans-serif, a `72rem`
+   content column, one bounded responsive filter panel, and clearly separated
+   job cards without introducing keyword search.
+4. Verify fixtures, bounded live fetch, lifecycle/dedupe behavior, public
+   attribution, no-JavaScript filters, desktop/mobile layout, accessibility,
+   migrations, build, and the complete relevant suite.
 
 ## Evidence and synchronization
 

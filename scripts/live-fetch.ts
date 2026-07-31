@@ -1,3 +1,7 @@
+import {
+  fetchJsguruPages,
+  JSGURU_PAGES,
+} from '../src/ingestion/adapters/jsguru'
 import { remoteOkAdapter } from '../src/ingestion/adapters/remote-ok'
 import { WWR_FEEDS, fetchWwrFeeds } from '../src/ingestion/adapters/wwr'
 import { boundedError } from '../src/ingestion/normalization'
@@ -27,9 +31,31 @@ const startedAt = new Date().toISOString()
 const output: Record<string, unknown> = {
   startedAt,
   policy: {
+    configuredJsguruPages: JSGURU_PAGES.length,
     persistRawPayloads: false,
     configuredWwrFeeds: WWR_FEEDS.length,
   },
+}
+
+try {
+  const jsguru = await fetchJsguruPages(observedFetch)
+  output.jsguru = {
+    admittedCount: jsguru.parsed?.records.length ?? 0,
+    aggregatedDuplicateCount:
+      (jsguru.parsed?.fetchedCount ?? 0) -
+      (jsguru.parsed?.records.length ?? 0) -
+      (jsguru.parsed?.rejectedCount ?? 0),
+    completedPageCount: jsguru.successfulPageCount,
+    configuredPageCount: JSGURU_PAGES.length,
+    errors: jsguru.errors.map((error) => boundedError(error, 200)),
+    fetchedCount: jsguru.parsed?.fetchedCount ?? 0,
+    rejectedCount: jsguru.parsed?.rejectedCount ?? 0,
+    responseHash: jsguru.parsed?.responseHash ?? null,
+  }
+} catch (error) {
+  output.jsguru = {
+    error: boundedError(error),
+  }
 }
 
 try {

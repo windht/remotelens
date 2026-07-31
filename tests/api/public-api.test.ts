@@ -101,6 +101,21 @@ describe('public API contract', () => {
         .data,
     ).toEqual([])
 
+    const jsguru = await request('/api/v1/jobs?source=jsguru')
+    expect(jsguru.status).toBe(200)
+    const jsguruJobs = z
+      .object({ data: z.array(ApiJobSummarySchema) })
+      .parse(await jsguru.json()).data
+    expect(jsguruJobs).toHaveLength(1)
+    expect(jsguruJobs[0]?.sources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          attribution: 'JS Guru Jobs',
+          provider: 'jsguru',
+        }),
+      ]),
+    )
+
     const invalid = await request('/api/v1/jobs?country=JAPAN')
     expect(invalid.status).toBe(400)
     expect(ApiErrorEnvelopeSchema.parse(await invalid.json()).error.code).toBe(
@@ -147,7 +162,7 @@ describe('public API contract', () => {
     const meta = await request('/api/v1/meta')
     expect(meta.status).toBe(200)
     const metaBody = z.object({ data: z.unknown() }).parse(await meta.json())
-    expect(ApiMetaSchema.parse(metaBody.data).providers).toHaveLength(2)
+    expect(ApiMetaSchema.parse(metaBody.data).providers).toHaveLength(3)
 
     const jsonFeed = await request('/feeds/jobs.json?limit=2')
     expect(jsonFeed.status).toBe(200)

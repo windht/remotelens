@@ -816,7 +816,7 @@ function fixtureMeta(): CatalogMeta {
   return {
     cache_epoch: 'fixture',
     last_completed_cycle: null,
-    providers: (['remote_ok', 'wwr'] as const).map((key) => ({
+    providers: (['jsguru', 'remote_ok', 'wwr'] as const).map((key) => ({
       active_count: JOB_FIXTURES.filter(
         (job) =>
           job.status === 'active' &&

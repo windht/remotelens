@@ -5,6 +5,7 @@ const validEnvironment = {
   APP_ENV: 'test',
   DEEPSEEK_MODEL: 'not-configured-in-phase-1',
   DEEPSEEK_SCHEMA_RETRY_COUNT: '1',
+  ENABLE_SOURCE_JSGURU: 'true',
   ENABLE_SOURCE_REMOTE_OK: 'true',
   ENABLE_SOURCE_WWR: 'false',
   INGESTION_LOCK_TTL_SECONDS: '1800',
@@ -20,6 +21,7 @@ describe('runtime environment validation', () => {
   it('coerces documented string bindings into typed values', () => {
     expect(parseRuntimeEnv(validEnvironment)).toMatchObject({
       APP_ENV: 'test',
+      ENABLE_SOURCE_JSGURU: true,
       ENABLE_SOURCE_REMOTE_OK: true,
       ENABLE_SOURCE_WWR: false,
       INGESTION_LOCK_TTL_SECONDS: 1800,

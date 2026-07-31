@@ -139,7 +139,10 @@
         "in": "query",
         "style": "form",
         "explode": true,
-        "schema": { "type": "array", "items": { "enum": ["remote_ok", "wwr"] } }
+        "schema": {
+          "type": "array",
+          "items": { "enum": ["jsguru", "remote_ok", "wwr"] }
+        }
       },
       "company": {
         "name": "company",

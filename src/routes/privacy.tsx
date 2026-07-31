@@ -27,9 +27,9 @@ function PrivacyPage() {
         </p>
         <h2>Operational data</h2>
         <p>
-          V1 retains ordinary infrastructure logs and bounded ingestion-error
-          summaries for 30 days. It does not retain raw feed payloads, CV data,
-          advertising profiles, or prompt transcripts.
+          RemoteLens retains ordinary infrastructure logs and bounded
+          ingestion-error summaries for 30 days. It does not retain raw source
+          payloads, CV data, advertising profiles, or prompt transcripts.
         </p>
         <h2>No sale or advertising profile</h2>
         <p>

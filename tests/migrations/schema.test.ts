@@ -12,6 +12,9 @@ const migrationPath = fileURLToPath(
 const canonicalMigrationPath = fileURLToPath(
   new URL('../../drizzle/migrations/0001_canonical_jobs.sql', import.meta.url),
 )
+const jsguruMigrationPath = fileURLToPath(
+  new URL('../../drizzle/migrations/0002_jsguru_provider.sql', import.meta.url),
+)
 
 let database: DatabaseSync | undefined
 
@@ -235,5 +238,22 @@ describe('initial D1 migration', () => {
         )
         .get(),
     ).toEqual({ name: 'jobs_slug_uidx' })
+  })
+
+  it('adds JS Guru Jobs health state idempotently', () => {
+    const db = migratedDatabase()
+    const migration = readFileSync(jsguruMigrationPath, 'utf8').replaceAll(
+      '--> statement-breakpoint',
+      '',
+    )
+    db.exec(migration)
+    db.exec(migration)
+
+    expect(
+      db
+        .prepare('SELECT provider FROM source_health ORDER BY provider')
+        .all()
+        .map((row) => row.provider),
+    ).toEqual(['jsguru', 'remote_ok', 'wwr'])
   })
 })

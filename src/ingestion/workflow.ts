@@ -3,6 +3,7 @@ import {
   type WorkflowEvent,
   type WorkflowStep,
 } from 'cloudflare:workers'
+import { fetchJsguruPages, JSGURU_PAGES } from './adapters/jsguru'
 import { remoteOkAdapter } from './adapters/remote-ok'
 import { WWR_FEEDS, fetchWwrFeeds } from './adapters/wwr'
 import {
@@ -37,6 +38,7 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
       return claimCycle(this.env.DB, {
         cycleKey,
         enabledProviders: [
+          ...(environment.ENABLE_SOURCE_JSGURU ? (['jsguru'] as const) : []),
           ...(environment.ENABLE_SOURCE_REMOTE_OK
             ? (['remote_ok'] as const)
             : []),
@@ -49,6 +51,67 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
     if (!claim.claimed) {
       return { cycleId: claim.cycleId, status: 'not_claimed' as const }
     }
+
+    const jsguru = await step.do(
+      'ingest JS Guru Jobs',
+      {
+        retries: { backoff: 'exponential', delay: '10 seconds', limit: 2 },
+        timeout: '3 minutes',
+      },
+      async () => {
+        const now = Date.now()
+        if (!environment.ENABLE_SOURCE_JSGURU) {
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            fetchedCount: 0,
+            now,
+            provider: 'jsguru',
+            records: [],
+            rejectedCount: 0,
+            status: 'suspended',
+          })
+        }
+        try {
+          const result = await fetchJsguruPages(fetch)
+          const status =
+            result.successfulPageCount === JSGURU_PAGES.length
+              ? 'successful'
+              : result.successfulPageCount > 0
+                ? 'partial'
+                : 'failed'
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            ...(result.errors.length > 0
+              ? {
+                  errorCode: 'jsguru_page_failed',
+                  errorMessage: boundedError(result.errors.join('; ')),
+                }
+              : {}),
+            fetchedCount: result.parsed?.fetchedCount ?? 0,
+            now,
+            provider: 'jsguru',
+            records: result.parsed?.records ?? [],
+            rejectedCount: result.parsed?.rejectedCount ?? 0,
+            ...(result.parsed
+              ? { responseHash: result.parsed.responseHash }
+              : {}),
+            status,
+          })
+        } catch (error) {
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            errorCode: 'jsguru_fetch_failed',
+            errorMessage: boundedError(error),
+            fetchedCount: 0,
+            now,
+            provider: 'jsguru',
+            records: [],
+            rejectedCount: 0,
+            status: 'failed',
+          })
+        }
+      },
+    )
 
     const remoteOk = await step.do(
       'ingest Remote OK',
@@ -175,7 +238,7 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
           retryCount: environment.DEEPSEEK_SCHEMA_RETRY_COUNT,
         },
         semanticMaxPerRun: environment.SEMANTIC_DEDUPE_MAX_PER_RUN,
-        providerRuns: [remoteOk, wwr] as ProviderRunSummary[],
+        providerRuns: [jsguru, remoteOk, wwr] as ProviderRunSummary[],
       }),
     )
   }

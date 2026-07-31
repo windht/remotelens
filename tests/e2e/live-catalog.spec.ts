@@ -89,11 +89,11 @@ describeLive('live D1 catalog without JavaScript', () => {
     expect(
       JSON.parse(new URL(page.url()).searchParams.get('source') ?? '[]'),
     ).toEqual(['wwr'])
-    await expect(page.getByRole('heading', { name: '1 job' })).toBeVisible()
+    await expect(page.getByText(/1 job found/)).toBeVisible()
     await expect(page.getByText('Senior Backend Engineer')).toBeVisible()
 
     await page.goto('/jobs?company=Unknown%20Live%20Company')
-    await expect(page.getByRole('heading', { name: '0 jobs' })).toBeVisible()
+    await expect(page.getByText(/0 jobs found/)).toBeVisible()
     await expect(page.getByText('No exact matches')).toBeVisible()
   })
 })

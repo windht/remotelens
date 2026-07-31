@@ -32,6 +32,7 @@
     "APP_ENV": "production",
     "PUBLIC_SITE_URL": "https://remotelens.co",
     "PUBLIC_API_BASE_URL": "https://remotelens.co/api/v1",
+    "ENABLE_SOURCE_JSGURU": "true",
     "ENABLE_SOURCE_REMOTE_OK": "true",
     "ENABLE_SOURCE_WWR": "true",
     "INGESTION_LOCK_TTL_SECONDS": "1800",

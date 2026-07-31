@@ -90,7 +90,9 @@ function iso(value: number | null) {
 }
 
 function sourceLabel(provider: SourceKey) {
-  return provider === 'wwr' ? 'We Work Remotely' : 'Remote OK'
+  if (provider === 'wwr') return 'We Work Remotely'
+  if (provider === 'jsguru') return 'JS Guru Jobs'
+  return 'Remote OK'
 }
 
 function buildWhere(search: JobSearch) {

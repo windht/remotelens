@@ -59,7 +59,10 @@ function formatSalary(job: JobRowData) {
 }
 
 function formatEnum(value: string | null) {
-  return value ? value.replaceAll('_', ' ') : 'Unknown'
+  if (!value) return 'Unknown'
+  return value
+    .replaceAll('_', ' ')
+    .replace(/\b\w/g, (character) => character.toLocaleUpperCase())
 }
 
 export function JobRow({ job }: { job: JobRowData }) {
@@ -141,7 +144,7 @@ export function JobRow({ job }: { job: JobRowData }) {
           </time>
         </p>
         <p className="text-ink-muted text-xs">
-          {job.sources.map((source) => source.label).join(' · ')}
+          via {job.sources.map((source) => source.label).join(' · ')}
         </p>
       </div>
     </article>

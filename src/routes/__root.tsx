@@ -1,9 +1,8 @@
 /// <reference types="vite/client" />
 
-import '@fontsource-variable/instrument-sans'
+import '@fontsource-variable/geist'
 import '@fontsource/ibm-plex-mono/400.css'
 import '@fontsource/ibm-plex-mono/600.css'
-import '@fontsource/newsreader/500.css'
 
 import {
   HeadContent,
@@ -26,7 +25,7 @@ export const Route = createRootRoute({
       },
       {
         name: 'theme-color',
-        content: '#F4F1E8',
+        content: '#F7F8F7',
       },
       {
         title: 'RemoteLens — Remote jobs with source evidence',

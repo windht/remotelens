@@ -110,11 +110,13 @@ do not paste secrets or raw source text into incident notes.
 
 ## Provider suspension and recovery
 
-WWR is suspended by changing only the named `ENABLE_SOURCE_WWR` variable to
-`false` in the reviewed Wrangler configuration and deploying that reviewed
-version. This withholds WWR-only jobs while retaining its source records. It
-does not delete records or mass-close them. Re-enable it by reverting only that
-flag and deploying again, then run or wait for the next scheduled cycle.
+Each provider has one independent enablement variable:
+`ENABLE_SOURCE_JSGURU`, `ENABLE_SOURCE_REMOTE_OK`, and `ENABLE_SOURCE_WWR`.
+Suspend only the named provider by changing its variable to `false` in the
+reviewed Wrangler configuration and deploying that reviewed version. This
+withholds its source-only jobs while retaining source records. It does not
+delete records or mass-close them. Re-enable it by reverting only that flag and
+deploying again, then run or wait for the next scheduled cycle.
 
 Before and after a suspension test, record aggregate counts only:
 

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { JSGURU_PAGES } from '../../src/ingestion/adapters/jsguru'
 import { WWR_FEEDS } from '../../src/ingestion/adapters/wwr'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
@@ -32,5 +33,10 @@ describe('scheduled ingestion configuration', () => {
   it('keeps the WWR feed allow-list closed', () => {
     expect(WWR_FEEDS).toHaveLength(4)
     expect(JSON.stringify(WWR_FEEDS)).not.toMatch(/devops|sysadmin/i)
+  })
+
+  it('keeps the JS Guru Jobs page allow-list closed to the first three pages', () => {
+    expect(JSGURU_PAGES).toHaveLength(3)
+    expect(JSGURU_PAGES.at(-1)).toBe('https://jsgurujobs.com/jobs?page=3')
   })
 })

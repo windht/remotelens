@@ -1,4 +1,4 @@
-export type SourceKey = 'remote_ok' | 'wwr'
+export type SourceKey = 'jsguru' | 'remote_ok' | 'wwr'
 export type ProvenanceOrigin = 'source-stated' | 'parsed' | 'normalized'
 
 export type JobSourceFixture = {
@@ -125,9 +125,17 @@ export const JOB_FIXTURES: JobFixture[] = [
     ],
     sources: [
       {
+        key: 'jsguru',
+        label: 'JS Guru Jobs',
+        marker: 1,
+        listingUrl: 'https://jsgurujobs.com/jobs/551',
+        checkedAt: '2026-08-01T00:00:00.000Z',
+        categories: ['Rust', 'TypeScript', 'Remote'],
+      },
+      {
         key: 'wwr',
         label: 'We Work Remotely',
-        marker: 1,
+        marker: 2,
         listingUrl: 'https://weworkremotely.com/',
         checkedAt: '2026-07-30T14:48:00.000Z',
         categories: ['Remote Back-End Programming Jobs'],
@@ -135,7 +143,7 @@ export const JOB_FIXTURES: JobFixture[] = [
       {
         key: 'remote_ok',
         label: 'Remote OK',
-        marker: 2,
+        marker: 3,
         listingUrl: 'https://remoteok.com/',
         checkedAt: '2026-07-30T14:43:00.000Z',
         categories: ['backend', 'rust', 'engineer'],
@@ -146,25 +154,25 @@ export const JOB_FIXTURES: JobFixture[] = [
         field: 'title',
         value: 'Senior Backend Engineer',
         origin: 'source-stated',
-        marker: 1,
+        marker: 2,
       },
       {
         field: 'remote eligibility',
         value: 'Worldwide, except the United States',
         origin: 'parsed',
-        marker: 1,
+        marker: 2,
       },
       {
         field: 'salary',
         value: 'USD 160,000–210,000 per year',
         origin: 'source-stated',
-        marker: 2,
+        marker: 3,
       },
       {
         field: 'role family',
         value: 'engineering',
         origin: 'normalized',
-        marker: 1,
+        marker: 2,
       },
     ],
     descriptionHtml: roleDescription,

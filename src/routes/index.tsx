@@ -27,9 +27,7 @@ function HomePage() {
       <section className="home-hero page-shell">
         <div className="home-hero-copy">
           <p className="eyebrow">Source-led remote work</p>
-          <h1>
-            <span>See which remote jobs</span> <em>actually fit.</em>
-          </h1>
+          <h1>Remote jobs, cleanly indexed.</h1>
           <p className="lede">
             A clean index for humans and AI agents. Your CV stays local—
             comparison happens on your machine, not our server.
@@ -141,9 +139,9 @@ function HomePage() {
         <div id="methodology">
           <p className="eyebrow">The small print</p>
           <p>
-            RemoteLens indexes Remote OK and four approved We Work Remotely
-            programming feeds. Exact source evidence stays attached; ambiguous
-            facts stay unknown.
+            RemoteLens indexes JS Guru Jobs, Remote OK, and four approved We
+            Work Remotely programming feeds. Exact source evidence stays
+            attached; ambiguous facts stay unknown.
           </p>
         </div>
         <Link className="footer-link text-pine" to="/api">

@@ -102,7 +102,7 @@ function ApiPage() {
     "title": "Senior Backend Engineer",
     "company": "Kumo Systems",
     "remote_scope": "worldwide",
-    "sources": ["wwr", "remote_ok"]
+    "sources": ["jsguru", "wwr", "remote_ok"]
   }],
   "meta": {
     "next_cursor": null,

@@ -62,8 +62,9 @@ See the [API guide](https://remotelens.co/api) or the
 
 ## Data sources and privacy
 
-RemoteLens currently indexes developer jobs from
-[Remote OK](https://remoteok.com/) and the approved programming feeds from
+RemoteLens supports attributed developer jobs from
+[JS Guru Jobs](https://jsgurujobs.com/jobs), [Remote OK](https://remoteok.com/),
+and the approved programming feeds from
 [We Work Remotely](https://weworkremotely.com/).
 
 Provider content is treated as untrusted data. RemoteLens preserves source

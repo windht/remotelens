@@ -218,9 +218,10 @@ are complete.
     direction and render the ten latest jobs as the landing preview.
   - Acceptance: `ACC-REFINE-002`
 - [x] **P7-003 — Rebuild the dedicated Index layout and filters**
-  - Remove the oversized browse hero, use a compact sticky horizontal filter
-    row, replace native enhanced selects with shadcn/Radix Select while
-    retaining no-JavaScript fallbacks, and preserve shareable GET URLs.
+  - Remove the oversized browse hero, use a compact bounded responsive filter
+    panel, replace native enhanced selects with shadcn/Radix Select while
+    retaining no-JavaScript fallbacks, and preserve shareable GET URLs. The
+    original sticky treatment was superseded by P10-004.
   - Acceptance: `ACC-REFINE-003`, `ACC-REFINE-005`
 - [x] **P7-004 — Add bounded SSR and infinite result loading**
   - Server-render at most ten matching jobs, report the complete matching
@@ -272,6 +273,34 @@ are complete.
     history checks, run relevant technical validation, synchronize evidence,
     and confirm process cleanup.
   - Acceptance: `ACC-OSS-003`
+
+## Phase 10 — JS Guru Jobs source and clean index presentation
+
+- [x] **P10-001 — Approve and document JS Guru Jobs as a bounded provider**
+  - Record the server-rendered three-page HTML contract, stable listing identity,
+    visible attribution, source flag, application routing, and no-payload
+    persistence policy before enabling the provider.
+  - Acceptance: `ACC-JSGURU-001`
+- [x] **P10-002 — Implement the JS Guru Jobs Cheerio adapter**
+  - Fetch exactly `/jobs`, `/jobs?page=2`, and `/jobs?page=3`, parse and
+    normalize developer listings, aggregate duplicate listing IDs across pages,
+    sanitize excerpts, and emit deterministic hashes and labels.
+  - Acceptance: `ACC-JSGURU-001`, `ACC-JSGURU-002`
+- [x] **P10-003 — Route JS Guru Jobs through ingestion and deduplication**
+  - Add the independent provider flag, Workflow observation, D1/provider
+    metadata, canonical rebuild, structured source filters, API contracts, and
+    visible site/API attribution.
+  - Acceptance: `ACC-JSGURU-003`, `ACC-JSGURU-004`
+- [x] **P10-004 — Apply the Stitch clean-index redesign**
+  - Replace the serif/editorial presentation with the selected Geist-based
+    directory system, a bounded filter panel, and clearly separated job cards
+    on desktop and mobile without adding keyword search.
+  - Acceptance: `ACC-CLEAN-INDEX-001`, `ACC-CLEAN-INDEX-002`
+- [x] **P10-005 — Pass the Phase 10 validation and acceptance gate**
+  - Run focused adapter, ingestion, API, browser, accessibility, responsive,
+    live-fetch, build, and full repository validation; synchronize tracker
+    evidence and confirm process cleanup.
+  - Acceptance: `ACC-OPS-010`
 
 ## Operator-directed Cloudflare setup
 

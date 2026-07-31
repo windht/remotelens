@@ -15,7 +15,7 @@ type SourceRow = {
   last_checked_at: number
   last_seen_at: number
   listing_url: string
-  provider: 'remote_ok' | 'wwr'
+  provider: 'jsguru' | 'remote_ok' | 'wwr'
   source_key: string
   source_published_at: number | null
   status: 'active' | 'missing' | 'closed'
@@ -44,6 +44,7 @@ type CanonicalGroup = {
 const PROVIDER_PRIORITY: Record<SourceRow['provider'], number> = {
   remote_ok: 0,
   wwr: 1,
+  jsguru: 2,
 }
 
 function sourcePriority(record: SourceRow) {

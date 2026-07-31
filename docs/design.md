@@ -76,6 +76,9 @@ spacing:
 - **Selected responsive design-system asset:** `assets/a11ebb7086aa4bad8209e3ecacacdae1`
 - **Uploaded DESIGN.md screen:** `8481547125760297533`
 - **Generated:** 2026-07-30
+- **Clean-index design-system asset:** `assets/8629006953645284097`
+- **Clean-index selected screen:** `c3a57344463d4ca19a18d44e0c2fdeac`
+- **Clean-index review:** 2026-08-01
 
 The uploaded design document was accepted by Stitch. Its conversion RPC rejected
 the returned screen-instance argument, and the optional rich-theme update RPC
@@ -85,6 +88,14 @@ the mobile generation pass, Stitch materialized the complete responsive asset
 `assets/a11ebb7086aa4bad8209e3ecacacdae1`, including the named palette,
 Newsreader typography, compact radius, spacing, and mobile component guidance.
 That later asset is the selected token reference.
+
+The 2026-08-01 product review supersedes the original editorial styling for
+the public Index and shared typography. The new Stitch pass uses Geist
+sans-serif, a cool off-white canvas, a conventional `72rem` content column, a
+bounded filter panel, and individually bordered job cards. It intentionally
+removes the serif display voice, oversized hero treatment, sticky blurred
+toolbar, and rule-only result ledger. The existing structured-filter,
+attribution, accessibility, and no-keyword-search contracts remain unchanged.
 
 ## Direction — Field Index
 

@@ -1,6 +1,8 @@
 # Future Data Sources
 
-These are research leads for later additions, not approved V1 providers. V1 is limited to Remote OK and the four-feed We Work Remotely developer cohort in `REMOTELENS_PLAN.md`.
+These are research leads for later additions, not approved providers. Current
+production providers are listed in `docs/source-policy.md`; appearing in this
+table does not authorize ingestion.
 
 Before enabling any candidate, verify its current endpoint, attribution/routing expectations, stable source identity, developer-job scope, and fixture coverage.
 

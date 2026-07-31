@@ -39,7 +39,7 @@ test.describe('public shell', () => {
       error: { code: 'method_not_allowed' },
     })
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
-      'See which remote jobs actually fit',
+      'Remote jobs, cleanly indexed.',
     )
     await expect(page.getByText('No ads', { exact: true })).toBeVisible()
     await expect(page.getByText('No login', { exact: true })).toBeVisible()
@@ -72,7 +72,7 @@ test.describe('public shell', () => {
 
   test('shows exact empty and malformed-filter states', async ({ page }) => {
     await page.goto('/jobs?company=Unknown%20Company')
-    await expect(page.getByRole('heading', { name: '0 jobs' })).toBeVisible()
+    await expect(page.getByText(/0 jobs found/)).toBeVisible()
     await expect(page.getByText('No exact matches')).toBeVisible()
     await expect(
       page.getByLabel('Active filters').getByText('Company: Unknown Company'),
@@ -107,7 +107,7 @@ test.describe('public shell', () => {
     await expect(page.getByRole('link', { name: 'Async team' })).toHaveCount(0)
     await expect(
       page.getByRole('link', { name: 'View attributed source' }),
-    ).toHaveCount(2)
+    ).toHaveCount(3)
   })
 
   test('focuses navigation and keeps old editorial URLs safe', async ({
@@ -144,11 +144,15 @@ test.describe('public shell', () => {
     await expect(page.getByText('Repository package')).toBeVisible()
   })
 
-  test('uses Radix selects in the sticky horizontal Index filters', async ({
+  test('uses Radix selects in the bounded responsive Index filter panel', async ({
     page,
   }) => {
     await page.goto('/jobs')
-    await expect(page.locator('.index-toolbar')).toHaveCSS('position', 'sticky')
+    await expect(page.locator('.index-toolbar')).toHaveCSS('position', 'static')
+    await expect(page.locator('.index-filter-form')).toHaveCSS(
+      'background-color',
+      'rgb(255, 255, 255)',
+    )
     const country = page.getByLabel('Country eligibility')
     await country.click()
     await page.getByRole('option', { name: 'Japan (JP)' }).click()
@@ -187,8 +191,9 @@ test.describe('public shell', () => {
       )
       expect(overflow, `${route} should not overflow`).toBe(false)
       if (
-        testInfo.project.name === 'mobile-chromium' &&
-        ['/', '/jobs', '/sources', '/api'].includes(route)
+        route === '/jobs' ||
+        (testInfo.project.name === 'mobile-chromium' &&
+          ['/', '/sources', '/api'].includes(route))
       ) {
         await page.screenshot({
           fullPage: true,
@@ -211,10 +216,10 @@ test.describe('no-JavaScript structured filters', () => {
       .locator('select[name="employment_type"]')
       .selectOption('full_time')
     await page.getByText('More exact filters', { exact: true }).click()
-    await page.getByLabel('Exact filterable tag').fill('react')
+    await page.getByLabel('Exact filterable tag').fill('rust')
     await page
       .locator('select[name="source"]')
-      .selectOption('wwr', { force: true })
+      .selectOption('jsguru', { force: true })
     await Promise.all([
       page.waitForURL(/\/jobs\?/),
       page.getByLabel('Exact filterable tag').press('Enter'),
@@ -223,16 +228,17 @@ test.describe('no-JavaScript structured filters', () => {
     const submittedUrl = new URL(page.url())
     expect(submittedUrl.searchParams.get('country')).toBe('JP')
     expect(submittedUrl.searchParams.get('employment_type')).toBe('full_time')
-    expect(submittedUrl.searchParams.get('tag')).toBe('react')
+    expect(submittedUrl.searchParams.get('tag')).toBe('rust')
     expect(JSON.parse(submittedUrl.searchParams.get('source') ?? '[]')).toEqual(
-      ['wwr'],
+      ['jsguru'],
     )
-    await expect(page.getByRole('heading', { name: '1 job' })).toBeVisible()
-    await expect(page.getByText('Northstar Labs')).toBeVisible()
+    await expect(page.getByText(/1 job found/)).toBeVisible()
+    await expect(page.getByText('Kumo Systems')).toBeVisible()
+    await expect(page.getByText('via JS Guru Jobs')).toBeVisible()
     await page.reload()
     await expect(page.locator('select[name="country"]')).toHaveValue('JP')
-    await expect(page.locator('select[name="source"]')).toHaveValue('wwr')
-    await expect(page.getByLabel('Exact filterable tag')).toHaveValue('react')
+    await expect(page.locator('select[name="source"]')).toHaveValue('jsguru')
+    await expect(page.getByLabel('Exact filterable tag')).toHaveValue('rust')
     await expect(page.locator('input[name="q"]')).toHaveCount(0)
   })
 })

@@ -7,13 +7,13 @@ describe('parseJobSearch', () => {
   it('normalizes repeatable source and lexical tag values', () => {
     expect(
       parseJobSearch({
-        source: ['remote_ok', 'wwr'],
+        source: ['jsguru', 'remote_ok', 'wwr'],
         tag: ' Distributed_Systems ',
         country: 'jp',
       }),
     ).toMatchObject({
       country: 'JP',
-      source: ['remote_ok', 'wwr'],
+      source: ['jsguru', 'remote_ok', 'wwr'],
       tag: 'distributed-systems',
       status: 'active',
       sort: 'recently_discovered',
