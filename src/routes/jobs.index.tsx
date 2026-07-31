@@ -1,15 +1,20 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { JobRow } from '~/components/job-row'
-import { PageIntro } from '~/components/page-intro'
+import { loadWebsiteJobs } from '~/catalog/server-functions'
+import { InfiniteJobLedger } from '~/components/infinite-job-ledger'
+import { jobRowDataFromFixture } from '~/components/job-row'
 import { Button } from '~/components/ui/button'
 import { Field, controlClassName } from '~/components/ui/field'
-import { JOB_FIXTURES } from '~/data/job-fixtures'
+import {
+  EnhancedSelect,
+  SelectField,
+  type SelectOption,
+} from '~/components/ui/select'
 import { COUNTRY_OPTIONS } from '~/lib/countries'
-import { filterJobFixtures } from '~/lib/filter-job-fixtures'
 import {
   DEFAULT_JOB_SEARCH,
   EMPLOYMENT_TYPES,
   REMOTE_SCOPES,
+  ROLE_FAMILIES,
   SENIORITIES,
   SOURCE_KEYS,
   parseJobSearch,
@@ -17,15 +22,18 @@ import {
 
 export const Route = createFileRoute('/jobs/')({
   validateSearch: parseJobSearch,
+  loaderDeps: ({ search }) => ({ search }),
+  loader: ({ deps }) => loadWebsiteJobs({ data: deps.search }),
   head: () => ({
     meta: [
-      { title: 'Browse remote developer jobs — RemoteLens' },
+      { title: 'Remote jobs Index — RemoteLens' },
       {
         name: 'description',
         content:
-          'Use exact structured filters to browse attributed remote developer jobs.',
+          'Filter the attributed RemoteLens job Index with exact structured fields.',
       },
     ],
+    links: [{ rel: 'canonical', href: '/jobs' }],
   }),
   component: JobsPage,
 })
@@ -34,9 +42,41 @@ function labelValue(value: string) {
   return value.replaceAll('_', ' ')
 }
 
+function option(value: string, label = labelValue(value)): SelectOption {
+  return { label, value }
+}
+
+const COUNTRY_SELECT_OPTIONS = [
+  option('', 'Any eligible country'),
+  ...COUNTRY_OPTIONS.map(([code, name]) => option(code, `${name} (${code})`)),
+]
+const ROLE_OPTIONS = ROLE_FAMILIES.map((value) => option(value))
+const SCOPE_OPTIONS = [
+  option('', 'Default remote scopes'),
+  ...REMOTE_SCOPES.map((value) => option(value)),
+]
+const EMPLOYMENT_OPTIONS = [
+  option('', 'Any stated type'),
+  ...EMPLOYMENT_TYPES.map((value) => option(value)),
+]
+const SENIORITY_OPTIONS = [
+  option('', 'Any stated seniority'),
+  ...SENIORITIES.map((value) => option(value)),
+]
+const SOURCE_OPTIONS = [
+  option('', 'Either provider'),
+  ...SOURCE_KEYS.map((value) =>
+    option(value, value === 'wwr' ? 'We Work Remotely' : 'Remote OK'),
+  ),
+]
+const SORT_OPTIONS = [
+  option('recently_discovered', 'Recently discovered'),
+  option('newest_published', 'Newest published'),
+]
+
 function JobsPage() {
   const search = Route.useSearch()
-  const jobs = filterJobFixtures(JOB_FIXTURES, search)
+  const catalog = Route.useLoaderData()
   const activeFilters = [
     search.country ? `Country: ${search.country}` : null,
     search.company ? `Company: ${search.company}` : null,
@@ -49,18 +89,32 @@ function JobsPage() {
     ...search.source.map((source) => `Source: ${source}`),
     search.status === 'all' ? 'Including closed' : null,
   ].filter((value): value is string => Boolean(value))
+  const initialJobs = catalog.jobs.map(jobRowDataFromFixture)
 
   return (
-    <main className="page-shell" id="main-content" tabIndex={-1}>
-      <PageIntro eyebrow="Structured discovery" title="Remote developer jobs">
-        Exact filters, transparent source evidence, and no keyword-search
-        shortcuts. Every result in V1 belongs to the engineering role family.
-      </PageIntro>
+    <main id="main-content" tabIndex={-1}>
+      <header className="index-heading page-shell">
+        <div>
+          <p className="eyebrow">
+            {catalog.unavailable
+              ? 'Catalog unavailable'
+              : catalog.fallback
+                ? 'Local fixture index'
+                : 'Live catalog'}
+          </p>
+          <h1>
+            {catalog.total} {catalog.total === 1 ? 'job' : 'jobs'}
+          </h1>
+        </div>
+        <p className="index-heading-copy">
+          Exact filters, source evidence, and no promoted listings.
+        </p>
+      </header>
 
       {search.error ? (
         <div
           aria-live="polite"
-          className="border-rust bg-rust-soft mt-8 border p-5"
+          className="border-rust bg-rust-soft page-shell mb-5 border p-5"
           role="alert"
         >
           <p className="text-rust font-semibold">
@@ -70,243 +124,177 @@ function JobsPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-12 py-12 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)]">
-        <aside>
-          <form
-            action="/jobs"
-            className="border-line-strong grid gap-6 border-t pt-6"
-            method="get"
-          >
-            <div className="grid gap-2">
-              <p className="eyebrow">Filter ledger</p>
-              <p className="text-ink-muted text-sm">
-                These controls submit an ordinary shareable URL.
-              </p>
-            </div>
-
-            <Field label="Country eligibility">
-              <select
-                className={controlClassName}
+      <div className="index-toolbar">
+        <form
+          action="/jobs"
+          className="page-shell index-filter-form"
+          method="get"
+        >
+          <div className="filter-row">
+            <SelectField label="Country">
+              <EnhancedSelect
                 defaultValue={search.country ?? ''}
+                label="Country eligibility"
                 name="country"
-              >
-                <option value="">Any deterministically known country</option>
-                {COUNTRY_OPTIONS.map(([code, name]) => (
-                  <option key={code} value={code}>
-                    {name} ({code})
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Remote scope">
-              <select
-                className={controlClassName}
-                defaultValue={search.remote_scope ?? ''}
-                name="remote_scope"
-              >
-                <option value="">Default remote scopes</option>
-                {REMOTE_SCOPES.map((value) => (
-                  <option key={value} value={value}>
-                    {labelValue(value)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Employment type">
-              <select
-                className={controlClassName}
-                defaultValue={search.employment_type ?? ''}
-                name="employment_type"
-              >
-                <option value="">Any stated type</option>
-                {EMPLOYMENT_TYPES.map((value) => (
-                  <option key={value} value={value}>
-                    {labelValue(value)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Seniority">
-              <select
-                className={controlClassName}
-                defaultValue={search.seniority ?? ''}
-                name="seniority"
-              >
-                <option value="">Any stated seniority</option>
-                {SENIORITIES.map((value) => (
-                  <option key={value} value={value}>
-                    {labelValue(value)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field
-              description="Exact lexical value. There is no tag autocomplete or directory."
-              label="Exact filterable tag"
-            >
-              <input
-                className={controlClassName}
-                defaultValue={search.tag ?? ''}
-                name="tag"
-                placeholder="for example: rust"
-                type="text"
+                options={COUNTRY_SELECT_OPTIONS}
               />
-            </Field>
-
-            <details className="border-line border-y py-3">
-              <summary className="flex min-h-11 cursor-pointer items-center font-semibold">
-                More exact filters
-              </summary>
-              <div className="grid gap-6 py-4">
-                <Field
-                  description="Exact after company-name normalization; no fuzzy matching."
-                  label="Company"
-                >
-                  <input
-                    className={controlClassName}
-                    defaultValue={search.company ?? ''}
-                    name="company"
-                    placeholder="for example: Kumo Systems"
-                    type="text"
-                  />
-                </Field>
-                <Field label="Source">
-                  <select
-                    className={controlClassName}
-                    defaultValue={search.source[0] ?? ''}
-                    name="source"
-                  >
-                    <option value="">Either approved provider</option>
-                    {SOURCE_KEYS.map((value) => (
-                      <option key={value} value={value}>
-                        {value === 'wwr' ? 'We Work Remotely' : 'Remote OK'}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <label className="flex min-h-11 items-center gap-3 font-semibold">
-                  <input
-                    defaultChecked={search.status === 'all'}
-                    name="status"
-                    type="checkbox"
-                    value="all"
-                  />
-                  Include stale and closed fixtures
-                </label>
-              </div>
-            </details>
-
-            <input name="sort" type="hidden" value={search.sort} />
-            <Button type="submit">Apply filters</Button>
-            <Link
-              className="text-pine flex min-h-11 items-center justify-center text-sm font-semibold underline-offset-4 hover:underline"
-              search={DEFAULT_JOB_SEARCH}
-              to="/jobs"
-            >
-              Clear all filters
-            </Link>
-          </form>
-        </aside>
-
-        <section aria-labelledby="results-heading">
-          <div className="grid gap-5 pb-6 sm:grid-cols-[1fr_auto] sm:items-end">
-            <div className="grid gap-2">
-              <p className="eyebrow">Fixture-backed public shell</p>
-              <h2
-                className="!text-[clamp(2rem,4vw,3.5rem)]"
-                id="results-heading"
-              >
-                {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'}
-              </h2>
-            </div>
-            <form action="/jobs" className="grid gap-2" method="get">
-              {search.country ? (
-                <input name="country" type="hidden" value={search.country} />
-              ) : null}
-              {search.company ? (
-                <input name="company" type="hidden" value={search.company} />
-              ) : null}
-              {search.tag ? (
-                <input name="tag" type="hidden" value={search.tag} />
-              ) : null}
-              {search.source.map((source) => (
-                <input
-                  key={source}
-                  name="source"
-                  type="hidden"
-                  value={source}
-                />
-              ))}
-              <label className="grid gap-2 text-sm font-semibold">
-                Sort
-                <select
-                  className={controlClassName}
-                  defaultValue={search.sort}
-                  name="sort"
-                  onChange={(event) =>
-                    event.currentTarget.form?.requestSubmit()
-                  }
-                >
-                  <option value="recently_discovered">
-                    Recently discovered
-                  </option>
-                  <option value="newest_published">Newest published</option>
-                </select>
-              </label>
-              <noscript>
-                <Button type="submit" variant="secondary">
-                  Apply sort
-                </Button>
-              </noscript>
-            </form>
+            </SelectField>
+            <SelectField label="Role">
+              <EnhancedSelect
+                defaultValue={search.role_family}
+                label="Role family"
+                name="role_family"
+                options={ROLE_OPTIONS}
+              />
+            </SelectField>
+            <SelectField label="Scope">
+              <EnhancedSelect
+                defaultValue={search.remote_scope ?? ''}
+                label="Remote scope"
+                name="remote_scope"
+                options={SCOPE_OPTIONS}
+              />
+            </SelectField>
+            <SelectField label="Employment">
+              <EnhancedSelect
+                defaultValue={search.employment_type ?? ''}
+                label="Employment type"
+                name="employment_type"
+                options={EMPLOYMENT_OPTIONS}
+              />
+            </SelectField>
+            <SelectField label="Seniority">
+              <EnhancedSelect
+                defaultValue={search.seniority ?? ''}
+                label="Seniority"
+                name="seniority"
+                options={SENIORITY_OPTIONS}
+              />
+            </SelectField>
+            <SelectField label="Sort">
+              <EnhancedSelect
+                defaultValue={search.sort}
+                label="Sort"
+                name="sort"
+                options={SORT_OPTIONS}
+              />
+            </SelectField>
+            <Button className="filter-apply" type="submit">
+              Apply
+            </Button>
           </div>
 
+          <details className="index-more-filters">
+            <summary>More exact filters</summary>
+            <div className="index-more-grid">
+              <Field
+                description="Exact lexical value; there is no autocomplete."
+                label="Exact filterable tag"
+              >
+                <input
+                  className={controlClassName}
+                  defaultValue={search.tag ?? ''}
+                  name="tag"
+                  placeholder="for example: rust"
+                  type="text"
+                />
+              </Field>
+              <Field
+                description="Exact after company-name normalization."
+                label="Company"
+              >
+                <input
+                  className={controlClassName}
+                  defaultValue={search.company ?? ''}
+                  name="company"
+                  placeholder="for example: Kumo Systems"
+                  type="text"
+                />
+              </Field>
+              <SelectField label="Source">
+                <EnhancedSelect
+                  defaultValue={search.source[0] ?? ''}
+                  label="Source"
+                  name="source"
+                  options={SOURCE_OPTIONS}
+                />
+              </SelectField>
+              <label className="filter-checkbox">
+                <input
+                  defaultChecked={search.status === 'all'}
+                  name="status"
+                  type="checkbox"
+                  value="all"
+                />
+                Include stale and closed jobs
+              </label>
+              <Link
+                className="index-clear"
+                search={DEFAULT_JOB_SEARCH}
+                to="/jobs"
+              >
+                Clear all filters
+              </Link>
+            </div>
+          </details>
+        </form>
+      </div>
+
+      <section
+        aria-labelledby="results-heading"
+        className="page-shell index-results"
+      >
+        <div className="index-results-header">
+          <h2 id="results-heading">Index</h2>
           {activeFilters.length > 0 ? (
-            <div
-              className="mb-8 flex flex-wrap gap-2"
-              aria-label="Active filters"
-            >
+            <div aria-label="Active filters" className="active-filter-row">
               {activeFilters.map((filter) => (
-                <span
-                  className="border-pine bg-pine-soft text-pine-strong rounded-[var(--radius-label)] border px-2 py-1 text-xs font-semibold"
-                  key={filter}
-                >
+                <span className="active-filter" key={filter}>
                   {filter}
                 </span>
               ))}
             </div>
-          ) : null}
-
-          {jobs.length > 0 ? (
-            <div className="job-ledger">
-              {jobs.map((job) => (
-                <JobRow job={job} key={job.id} />
-              ))}
-            </div>
           ) : (
-            <div className="border-line-strong border-y py-16">
-              <p className="eyebrow">No exact matches</p>
-              <h2 className="mt-4 !text-[clamp(2rem,4vw,3.5rem)]">
-                The selected structured constraints return no fixture jobs.
-              </h2>
-              <p className="lede mt-6">
-                Remove one exact constraint or clear the filter ledger.
-                RemoteLens does not broaden this request with keyword or
-                semantic search.
-              </p>
-              <Button asChild className="mt-8" variant="secondary">
-                <Link search={DEFAULT_JOB_SEARCH} to="/jobs">
-                  Clear all filters
-                </Link>
-              </Button>
-            </div>
+            <p className="data-text text-ink-muted">
+              All active engineering jobs
+            </p>
           )}
-        </section>
-      </div>
+        </div>
+
+        {catalog.unavailable ? (
+          <div className="border-rust bg-rust-soft border p-6" role="alert">
+            <p className="text-rust font-semibold">
+              The live catalog is temporarily unavailable.
+            </p>
+            <p className="mt-2 text-sm">
+              No fallback jobs are substituted for a failed production read.
+            </p>
+          </div>
+        ) : catalog.total > 0 ? (
+          <InfiniteJobLedger
+            initialJobs={initialJobs}
+            key={JSON.stringify(search)}
+            search={search}
+            total={catalog.total}
+          />
+        ) : (
+          <div className="border-line-strong border-y py-16">
+            <p className="eyebrow">No exact matches</p>
+            <h2 className="mt-4 !text-[clamp(2rem,4vw,3.5rem)]">
+              These structured constraints return no jobs.
+            </h2>
+            <p className="lede mt-6">
+              Remove one exact constraint or clear the filters. RemoteLens does
+              not broaden the request with keyword or semantic search.
+            </p>
+            <Button asChild className="mt-8" variant="secondary">
+              <Link search={DEFAULT_JOB_SEARCH} to="/jobs">
+                Clear all filters
+              </Link>
+            </Button>
+          </div>
+        )}
+      </section>
     </main>
   )
 }

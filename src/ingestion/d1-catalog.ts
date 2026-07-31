@@ -1,4 +1,12 @@
-import { boundedError, sha256 } from './normalization'
+import {
+  boundedError,
+  normalizeCompany,
+  normalizeTitle,
+  sha256,
+} from './normalization'
+import { rebuildCanonicalJobs } from './canonical-jobs'
+import { resolveDedupeCandidates } from './dedupe'
+import type { SemanticDedupeConfig } from './semantic-dedupe'
 import type {
   NormalizedSourceRecord,
   Provider,
@@ -208,9 +216,10 @@ export async function persistProviderObservation(
   }
 
   if (input.status === 'successful') {
-    const seenPlaceholders = seenKeys.map(() => '?').join(',')
     const notSeenClause =
-      seenKeys.length > 0 ? `AND source_key NOT IN (${seenPlaceholders})` : ''
+      seenKeys.length > 0
+        ? 'AND source_key NOT IN (SELECT value FROM json_each(?))'
+        : ''
     await db
       .prepare(
         `UPDATE source_records
@@ -241,7 +250,7 @@ export async function persistProviderObservation(
         72 * HOURS,
         input.now,
         input.provider,
-        ...seenKeys,
+        ...(seenKeys.length > 0 ? [JSON.stringify(seenKeys)] : []),
       )
       .run()
     await db
@@ -354,30 +363,46 @@ export async function createDedupeCandidates(db: D1Database, now: number) {
       `SELECT
          left_record.id AS left_id,
          right_record.id AS right_id,
-         lower(trim(left_record.company)) AS company,
-         lower(trim(left_record.title)) AS title
+         left_record.company AS left_company,
+         right_record.company AS right_company,
+         left_record.title AS left_title,
+         right_record.title AS right_title,
+         left_record.listing_url AS left_listing_url,
+         right_record.listing_url AS right_listing_url
        FROM source_records AS left_record
        JOIN source_records AS right_record
          ON left_record.provider < right_record.provider
-        AND lower(trim(left_record.company)) = lower(trim(right_record.company))
-        AND lower(trim(left_record.title)) = lower(trim(right_record.title))
        WHERE left_record.status != 'closed' AND right_record.status != 'closed'`,
     )
     .all<{
-      company: string
       left_id: string
+      left_company: string
+      left_listing_url: string
+      left_title: string
       right_id: string
-      title: string
+      right_company: string
+      right_listing_url: string
+      right_title: string
     }>()
   const statements: D1PreparedStatement[] = []
   for (const pair of pairs.results) {
+    const sameCompany =
+      normalizeCompany(pair.left_company).toLocaleLowerCase() ===
+      normalizeCompany(pair.right_company).toLocaleLowerCase()
+    const sameTitle =
+      normalizeTitle(pair.left_title).toLocaleLowerCase() ===
+      normalizeTitle(pair.right_title).toLocaleLowerCase()
+    const sameListing =
+      pair.left_listing_url.trim().toLocaleLowerCase() ===
+      pair.right_listing_url.trim().toLocaleLowerCase()
+    if ((!sameCompany || !sameTitle) && !sameListing) continue
     const [leftId, rightId] = [pair.left_id, pair.right_id].toSorted()
     const evidenceHash = await sha256(
       JSON.stringify({
-        company: pair.company,
+        company: normalizeCompany(pair.left_company).toLocaleLowerCase(),
         leftId,
         rightId,
-        title: pair.title,
+        title: normalizeTitle(pair.left_title).toLocaleLowerCase(),
       }),
     )
     statements.push(
@@ -411,6 +436,8 @@ export async function finalizeCycle(
     cacheEpochBefore: string
     cycleId: string
     now: number
+    semantic?: SemanticDedupeConfig
+    semanticMaxPerRun?: number
     providerRuns: ProviderRunSummary[]
   },
 ) {
@@ -438,7 +465,15 @@ export async function finalizeCycle(
           )
         ).slice(0, 24)}`
 
-  if (status !== 'failed') await createDedupeCandidates(db, input.now)
+  if (status !== 'failed') {
+    await createDedupeCandidates(db, input.now)
+    await resolveDedupeCandidates(db, {
+      maxPerRun: input.semanticMaxPerRun ?? 50,
+      now: input.now,
+      ...(input.semantic ? { semantic: input.semantic } : {}),
+    })
+    await rebuildCanonicalJobs(db, input.now)
+  }
   await db.batch([
     db
       .prepare(

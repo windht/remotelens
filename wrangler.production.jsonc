@@ -1,0 +1,71 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "remotelens",
+  "account_id": "d06a8c795d2fd2c7718ed48c534dc2ba",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-07-29",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "remotelens.co",
+      "custom_domain": true,
+    },
+  ],
+  "assets": {
+    "directory": "dist/client",
+    "run_worker_first": ["/*", "!/assets/*"],
+  },
+  "base_dir": "dist/server",
+  "find_additional_modules": true,
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": ["**/*.js", "**/*.mjs"],
+    },
+  ],
+  "no_bundle": true,
+  "observability": {
+    "enabled": true,
+  },
+  "vars": {
+    "APP_ENV": "production",
+    "PUBLIC_SITE_URL": "https://remotelens.co",
+    "PUBLIC_API_BASE_URL": "https://remotelens.co/api/v1",
+    "ENABLE_SOURCE_REMOTE_OK": "true",
+    "ENABLE_SOURCE_WWR": "true",
+    "INGESTION_LOCK_TTL_SECONDS": "1800",
+    "SEMANTIC_DEDUPE_MAX_PER_RUN": "50",
+    "SOURCE_MISSING_RUN_THRESHOLD": "2",
+    "SOURCE_CLOSE_AFTER_HOURS": "72",
+    "SOURCE_CLOSED_RETENTION_DAYS": "30",
+    "DEEPSEEK_MODEL": "deepseek-chat",
+    "DEEPSEEK_SCHEMA_RETRY_COUNT": "1",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "remotelens-catalog",
+      "database_id": "64a296b6-d6d0-4e11-8b3a-4145018c03c4",
+      "migrations_dir": "drizzle/migrations",
+    },
+  ],
+  "workflows": [
+    {
+      "binding": "CATALOG_INGESTION",
+      "name": "remotelens-catalog-ingestion",
+      "class_name": "CatalogIngestionWorkflow",
+      "schedules": ["0 */12 * * *"],
+    },
+  ],
+  "ratelimits": [
+    {
+      "name": "API_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 120,
+        "period": 60,
+      },
+    },
+  ],
+}

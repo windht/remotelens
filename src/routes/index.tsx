@@ -1,10 +1,11 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { JobRow } from '~/components/job-row'
+import { JobRow, jobRowDataFromFixture } from '~/components/job-row'
 import { Button } from '~/components/ui/button'
-import { FEATURED_JOBS } from '~/data/job-fixtures'
+import { loadWebsiteJobs } from '~/catalog/server-functions'
 import { DEFAULT_JOB_SEARCH } from '~/lib/job-search'
 
 export const Route = createFileRoute('/')({
+  loader: () => loadWebsiteJobs({ data: DEFAULT_JOB_SEARCH }),
   head: () => ({
     meta: [
       { title: 'RemoteLens — See which remote jobs actually fit' },
@@ -14,71 +15,94 @@ export const Route = createFileRoute('/')({
           'Browse attributed remote developer jobs without ads, promoted listings, login walls, or CV uploads.',
       },
     ],
+    links: [{ rel: 'canonical', href: '/' }],
   }),
   component: HomePage,
 })
 
 function HomePage() {
+  const catalog = Route.useLoaderData()
   return (
     <main id="main-content" tabIndex={-1}>
-      <section className="page-shell border-line grid gap-12 border-b py-[clamp(4rem,11vw,10rem)] lg:grid-cols-12 lg:items-end">
-        <div className="grid gap-8 lg:col-span-8">
-          <p className="eyebrow">Public remote developer-job index</p>
-          <h1>See which remote jobs actually fit.</h1>
+      <section className="home-hero page-shell">
+        <div className="home-hero-copy">
+          <p className="eyebrow">Source-led remote work</p>
+          <h1>
+            <span>See which remote jobs</span> <em>actually fit.</em>
+          </h1>
           <p className="lede">
-            RemoteLens is a clean remote-job index for humans and AI agents.
-            Browse fresh listings without ads, promoted jobs, or account
-            walls—or let Codex or Claude compare them with a CV that stays on
-            your computer.
+            A clean index for humans and AI agents. Your CV stays local—
+            comparison happens on your machine, not our server.
           </p>
         </div>
-        <div className="grid gap-3 lg:col-span-4 lg:col-start-9">
-          <Button asChild>
+        <div className="home-actions">
+          <Button asChild className="home-primary-action">
             <Link search={DEFAULT_JOB_SEARCH} to="/jobs">
-              Browse remote jobs
+              <span>Browse the Index</span>
+              <span aria-hidden="true">→</span>
             </Link>
           </Button>
           <Button asChild variant="secondary">
-            <Link to="/skills/install">Install the Agent Skill</Link>
+            <Link to="/skills/install">
+              <span>Install the Agent Skill</span>
+              <span aria-hidden="true">↗</span>
+            </Link>
           </Button>
-          <Link
-            className="text-pine flex min-h-11 items-center justify-center text-sm font-semibold underline-offset-4 hover:underline"
-            to="/api"
-          >
-            Read the API documentation
+          <Link className="home-api-link" to="/api">
+            API documentation
           </Link>
         </div>
       </section>
 
-      <div
-        aria-label="Product promises"
-        className="page-shell border-line grid grid-cols-2 border-b py-6 text-xs font-semibold tracking-[0.04em] uppercase md:grid-cols-4"
-      >
+      <div aria-label="Product promises" className="promise-ledger page-shell">
         <span>No ads</span>
         <span>No promoted jobs</span>
         <span>No login</span>
         <span>CV stays local</span>
       </div>
 
-      <section className="page-shell mt-section">
-        <div className="grid gap-8 pb-8 md:grid-cols-[1fr_auto] md:items-end">
+      <section className="home-index page-shell">
+        <div className="home-index-heading">
           <div className="grid gap-3">
-            <p className="eyebrow">Index preview</p>
-            <h2>Developer roles, with the evidence attached.</h2>
+            <p className="eyebrow">
+              {catalog.unavailable
+                ? 'Catalog unavailable'
+                : catalog.fallback
+                  ? 'Local fixture fallback'
+                  : 'Live catalog'}
+            </p>
+            <h2>Live Index Ledger</h2>
           </div>
-          <Link
-            className="text-pine inline-flex min-h-11 items-center font-semibold underline-offset-4 hover:underline"
-            search={DEFAULT_JOB_SEARCH}
-            to="/jobs"
-          >
-            View the structured index
+          <Link className="index-sync" search={DEFAULT_JOB_SEARCH} to="/jobs">
+            <span aria-hidden="true" className="sync-dot" />
+            Open full Index
           </Link>
         </div>
-        <div className="job-ledger">
-          {FEATURED_JOBS.map((job) => (
-            <JobRow job={job} key={job.id} />
-          ))}
-        </div>
+        {catalog.unavailable ? (
+          <div className="border-rust bg-rust-soft border p-6" role="alert">
+            <p className="text-rust font-semibold">
+              The catalog is temporarily unavailable.
+            </p>
+            <p className="mt-2 text-sm">
+              No jobs were fabricated for this request. Refresh shortly to try
+              the live catalog again.
+            </p>
+          </div>
+        ) : catalog.jobs.length > 0 ? (
+          <div className="job-ledger">
+            {catalog.jobs.map((job) => (
+              <JobRow job={jobRowDataFromFixture(job)} key={job.id} />
+            ))}
+          </div>
+        ) : (
+          <div className="border-line-strong border-y py-10">
+            <p className="eyebrow">No active jobs</p>
+            <p className="lede mt-4">
+              The catalog is ready, but no active canonical jobs currently
+              satisfy the public engineering-role boundary.
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="page-shell mt-section border-line grid border-y lg:grid-cols-2">
@@ -94,7 +118,7 @@ function HomePage() {
             className="text-pine inline-flex min-h-11 items-center font-semibold underline-offset-4 hover:underline"
             to="/skills/install"
           >
-            Read the installation preview
+            Read the installation guide
           </Link>
         </div>
         <div className="border-line grid gap-8 border-t py-12 lg:border-t-0 lg:pl-12">
@@ -113,31 +137,18 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="page-shell mt-section">
-        <div className="grid gap-8 lg:grid-cols-12">
-          <div className="grid gap-4 lg:col-span-5">
-            <p className="eyebrow">Provider freshness</p>
-            <h2>Freshness belongs to each source.</h2>
-          </div>
-          <div className="border-line-strong border-t lg:col-span-6 lg:col-start-7">
-            <div className="provider-row">
-              <strong>Remote OK</strong>
-              <span className="data-text">
-                Fixture checked 30 Jul · 14:43 UTC
-              </span>
-            </div>
-            <div className="provider-row">
-              <strong>We Work Remotely</strong>
-              <span className="data-text">
-                Fixture checked 30 Jul · 14:48 UTC
-              </span>
-            </div>
-            <p className="text-ink-muted pt-5 text-sm">
-              Phase 0 uses sanitized fixtures. Live source health is introduced
-              in Phase 1 and is always reported per provider.
-            </p>
-          </div>
+      <section className="source-note page-shell mt-section" id="sources">
+        <div id="methodology">
+          <p className="eyebrow">The small print</p>
+          <p>
+            RemoteLens indexes Remote OK and four approved We Work Remotely
+            programming feeds. Exact source evidence stays attached; ambiguous
+            facts stay unknown.
+          </p>
         </div>
+        <Link className="footer-link text-pine" to="/api">
+          Inspect the public contract
+        </Link>
       </section>
     </main>
   )

@@ -27,6 +27,7 @@ test.describe('public shell', () => {
     const response = await page.goto('/')
     expect(response?.headers()['x-content-type-options']).toBe('nosniff')
     expect(response?.headers()['x-frame-options']).toBe('DENY')
+    expect(response?.headers()['cache-control']).toBe('no-store')
     expect(response?.headers()['content-security-policy']).toContain(
       "frame-ancestors 'none'",
     )
@@ -43,11 +44,11 @@ test.describe('public shell', () => {
     await expect(page.getByText('No ads', { exact: true })).toBeVisible()
     await expect(page.getByText('No login', { exact: true })).toBeVisible()
 
-    await page.getByRole('link', { name: 'Browse remote jobs' }).first().click()
+    await page.getByRole('link', { name: 'Browse the Index' }).click()
     await expect(page).toHaveURL(/\/jobs/)
     await page.reload()
     await expect(
-      page.getByRole('heading', { name: 'Remote developer jobs' }),
+      page.getByRole('heading', { name: 'Index', exact: true }),
     ).toBeVisible()
   })
 
@@ -64,9 +65,9 @@ test.describe('public shell', () => {
       page.getByRole('heading', { name: /Keep your CV local/ }),
     ).toBeVisible()
     await page.goto('/')
-    await page.getByRole('link', { name: 'Read the API documentation' }).click()
+    await page.getByRole('link', { name: 'API documentation' }).click()
     await expect(page).toHaveURL(/\/api/)
-    await expect(page.getByText('Phase 3 contract')).toBeVisible()
+    await expect(page.getByText('Live contract')).toBeVisible()
   })
 
   test('shows exact empty and malformed-filter states', async ({ page }) => {
@@ -81,7 +82,9 @@ test.describe('public shell', () => {
     await expect(page.getByRole('alert')).toContainText(
       'invalid_filter: country',
     )
-    await expect(page.getByLabel('Country eligibility')).toHaveValue('')
+    await expect(page.getByLabel('Country eligibility')).toContainText(
+      'Any eligible country',
+    )
 
     await page.goto('/jobs?source=unknown')
     await expect(page.getByRole('alert')).toContainText(
@@ -107,19 +110,51 @@ test.describe('public shell', () => {
     ).toHaveCount(2)
   })
 
-  test('documents the approved sources and later-phase boundaries', async ({
+  test('focuses navigation and keeps old editorial URLs safe', async ({
     page,
   }) => {
+    await page.goto('/')
+    if ((page.viewportSize()?.width ?? 1440) < 768) {
+      await page.getByText('Menu', { exact: true }).click()
+    }
+    const navigation = page.getByRole('navigation', {
+      name:
+        (page.viewportSize()?.width ?? 1440) < 768
+          ? 'Mobile navigation'
+          : 'Primary navigation',
+    })
+    await expect(navigation).toContainText('Index')
+    await expect(navigation).not.toContainText('Sources')
+    await expect(navigation).not.toContainText('Methodology')
     await page.goto('/sources')
-    await expect(
-      page.getByText('Two providers. Five approved feeds.'),
-    ).toBeVisible()
-    await expect(page.getByText('DevOps/Sysadmin is outside V1.')).toBeVisible()
+    await expect(page).toHaveURL(/\/#sources$/)
     await page.goto('/methodology')
-    await expect(page.getByText('No generic search.')).toBeVisible()
+    await expect(page).toHaveURL(/\/#methodology$/)
+    await page.goto('/api')
+    await expect(page.locator('#freshness')).toHaveCount(0)
     await page.goto('/skills/install')
-    await expect(page.getByText('No invented package command.')).toBeVisible()
-    await expect(page.getByText('Phase 5 preview')).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Install from GitHub.' }),
+    ).toBeVisible()
+    await expect(
+      page.getByText('npx skills add windht/remotelens', {
+        exact: true,
+      }),
+    ).toBeVisible()
+    await expect(page.getByText('Repository package')).toBeVisible()
+  })
+
+  test('uses Radix selects in the sticky horizontal Index filters', async ({
+    page,
+  }) => {
+    await page.goto('/jobs')
+    await expect(page.locator('.index-toolbar')).toHaveCSS('position', 'sticky')
+    const country = page.getByLabel('Country eligibility')
+    await country.click()
+    await page.getByRole('option', { name: 'Japan (JP)' }).click()
+    await expect(country).toContainText('Japan (JP)')
+    await page.getByRole('button', { name: 'Apply' }).click()
+    expect(new URL(page.url()).searchParams.get('country')).toBe('JP')
   })
 
   test('has no serious or critical axe violations on critical routes', async ({
@@ -171,8 +206,11 @@ test.describe('no-JavaScript structured filters', () => {
 
   test('submits and reloads exact GET filters', async ({ page }) => {
     await page.goto('/jobs')
-    await page.getByLabel('Country eligibility').selectOption('JP')
-    await page.getByLabel('Employment type').selectOption('full_time')
+    await page.locator('select[name="country"]').selectOption('JP')
+    await page
+      .locator('select[name="employment_type"]')
+      .selectOption('full_time')
+    await page.getByText('More exact filters', { exact: true }).click()
     await page.getByLabel('Exact filterable tag').fill('react')
     await page
       .locator('select[name="source"]')
@@ -192,7 +230,7 @@ test.describe('no-JavaScript structured filters', () => {
     await expect(page.getByRole('heading', { name: '1 job' })).toBeVisible()
     await expect(page.getByText('Northstar Labs')).toBeVisible()
     await page.reload()
-    await expect(page.getByLabel('Country eligibility')).toHaveValue('JP')
+    await expect(page.locator('select[name="country"]')).toHaveValue('JP')
     await expect(page.locator('select[name="source"]')).toHaveValue('wwr')
     await expect(page.getByLabel('Exact filterable tag')).toHaveValue('react')
     await expect(page.locator('input[name="q"]')).toHaveCount(0)

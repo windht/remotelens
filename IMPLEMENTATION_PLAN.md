@@ -1,12 +1,11 @@
-# RemoteLens Phase 0–1 Implementation Plan
+# RemoteLens Full Delivery Implementation Plan
 
 ## Scope
 
-This run delivers Phase 0 and Phase 1 from `REMOTELENS_PLAN.md`, plus the
-explicitly requested polished public frontend foundation. It does not deploy
-production, expose a public ingestion endpoint, or implement Phase 2 canonical
-merge behavior, Phase 3 public APIs/feeds, Phase 5 Agent Skill behavior, or
-Phase 6 production operations.
+This run delivers the complete Phase 0–6 plan from `REMOTELENS_PLAN.md`.
+Phases 0–5 are implemented and validated, and Phase 6 production deployment
+and hardening is complete in the selected Hutong531 account. The service
+remains public, read-only, and local-CV-only throughout.
 
 RemoteLens remains a public, read-only remote developer-job index. It has no
 accounts, hosted CVs, saved jobs, employer posting, advertising, application
@@ -25,9 +24,51 @@ tracking, or auto-apply behavior.
 - Structured discovery only; no text, title, description, vector, or semantic
   search.
 - Deterministic source-local identity and candidate generation before the
-  Phase 2 semantic-deduplication path.
+  bounded Phase 2 semantic-deduplication path.
 
-## Phase 0 — Repository, design, and public shell
+## Phase 2 — Canonical jobs and deduplication
+
+- Extend D1 with canonical fields, stable slugs, filter projections, tags, and
+  field provenance.
+- Derive canonical fields conservatively from source evidence and retain
+  unknowns rather than guessing.
+- Resolve exact duplicate candidates deterministically, record append-only
+  decisions, and use DeepSeek only for unresolved cross-source candidates with
+  a maximum of 50 decisions per ingestion run.
+- Rebuild/upsert canonical jobs, preserve source conflicts, and apply active,
+  stale, closed, retention, and provider-suspension semantics.
+
+## Phase 3 — Public API and feeds
+
+- Ship the documented unauthenticated `/api/v1` jobs, detail, taxonomy, and
+  metadata endpoints with Zod contracts, opaque cursor pagination, structured
+  filters, provenance, stable errors, CORS, caching, and a bounded rate guard.
+- Ship active-job JSON/RSS feeds and an OpenAPI document without introducing
+  generic or full-text search.
+
+## Phase 4 — Live public SSR website
+
+- Route public SSR pages through the D1 catalog service while keeping sanitized
+  fixtures only as a local empty-catalog fallback.
+- Complete provenance, freshness, SEO, empty/error, no-JavaScript, accessibility,
+  and responsive behavior for all required routes.
+
+## Phase 5 — Agent Skill
+
+- Ship the repository-owned `skills/remotelens/` package with `SKILL.md`, API,
+  matching, CV-safety, local workflow references, and an example config.
+- Document Codex, Claude Code, and generic installation; keep CV reads local,
+  never scrape source pages, never mutate trackers, and never submit jobs.
+- Add prompt-injection and selected-file-only safety tests.
+
+## Phase 6 — Production deployment and hardening
+
+- Create/migrate the Hutong531 production D1, deploy the Worker and direct
+  `0 */12 * * *` Workflow, and run the authenticated initial ingestion.
+- Verify public site/API availability, source freshness, provider suspension,
+  observability, security headers, and the export/restore operations runbook.
+
+## Phase 0 — Repository, design, and public shell (complete)
 
 ### P0.1 Repository and quality foundation
 
@@ -71,7 +112,7 @@ tracking, or auto-apply behavior.
 - Local Cloudflare-compatible SSR starts and serves the critical routes.
 - Critical Phase 0 acceptance cases are recorded as passed.
 
-## Phase 1 — Domain model and V1 ingestion foundation
+## Phase 1 — Domain model and V1 ingestion foundation (complete)
 
 ### P1.1 D1 and domain schema
 

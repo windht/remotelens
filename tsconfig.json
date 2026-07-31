@@ -4,6 +4,7 @@
     "src/**/*.tsx",
     "tests/**/*.ts",
     "tests/**/*.tsx",
+    "skills/**/*.ts",
     "scripts/**/*.ts",
     "vite.config.ts",
     "vitest.config.ts",

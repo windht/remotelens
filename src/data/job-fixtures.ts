@@ -12,11 +12,20 @@ export type JobSourceFixture = {
 
 export type JobFixture = {
   company: string
-  companyDomain: string
+  companyDomain: string | null
   descriptionHtml: string
   eligibleCountries: string[]
-  employmentType: 'contract' | 'full_time'
+  eligibleRegions?: string[]
+  employmentType:
+    | 'contract'
+    | 'full_time'
+    | 'part_time'
+    | 'temporary'
+    | 'internship'
+    | 'freelance'
+    | null
   excludedCountries: string[]
+  excludedRegions?: string[]
   firstSeenAt: string
   id: string
   locationSummary: string
@@ -26,15 +35,25 @@ export type JobFixture = {
     origin: ProvenanceOrigin
     value: string
   }>
-  publishedAt: string
-  remoteScope: 'countries' | 'region' | 'timezone' | 'worldwide'
+  publishedAt: string | null
+  remoteScope:
+    'countries' | 'region' | 'timezone' | 'worldwide' | 'hybrid' | 'unspecified'
   salary: {
     currency: string
     max: number
     min: number
-    period: 'year'
+    period: 'hour' | 'month' | 'year'
   } | null
-  seniority: 'lead' | 'mid' | 'senior' | 'staff'
+  seniority:
+    | 'entry'
+    | 'junior'
+    | 'mid'
+    | 'senior'
+    | 'staff'
+    | 'principal'
+    | 'lead'
+    | 'manager'
+    | null
   slug: string
   sources: JobSourceFixture[]
   status: 'active' | 'closed' | 'stale'
@@ -44,6 +63,7 @@ export type JobFixture = {
     sourceValue: string
   }>
   title: string
+  timezoneRequirements?: string[]
   travelRequired: 'no' | 'unknown' | 'yes'
   visaSponsorship: 'no' | 'unknown' | 'yes'
 }

@@ -5,13 +5,14 @@ import { Badge } from '~/components/ui/badge'
 export const Route = createFileRoute('/api')({
   head: () => ({
     meta: [
-      { title: 'API documentation preview — RemoteLens' },
+      { title: 'Public API documentation — RemoteLens' },
       {
         name: 'description',
         content:
-          'Preview the public read-only RemoteLens JSON API and structured filter contract.',
+          'Use the public read-only RemoteLens JSON API and structured filter contract.',
       },
     ],
+    links: [{ rel: 'canonical', href: '/api' }],
   }),
   component: ApiPage,
 })
@@ -23,9 +24,9 @@ function ApiPage() {
         eyebrow="Public read-only API"
         title="Structured job data, without a private key."
       >
-        The Phase 0 page documents the settled contract. D1-backed endpoints are
-        delivered in Phase 3, so examples below are clearly previews rather than
-        live API claims.
+        These are the shipped D1-backed endpoints. They are public,
+        unauthenticated, read-only, and designed to carry source evidence with
+        every result.
       </PageIntro>
 
       <div className="grid gap-12 py-12 lg:grid-cols-[14rem_minmax(0,1fr)]">
@@ -35,26 +36,24 @@ function ApiPage() {
         >
           <p className="eyebrow">On this page</p>
           <ol className="border-line mt-4 border-t">
-            {['Overview', 'Structured filters', 'Response', 'Freshness'].map(
-              (item) => (
-                <li className="border-line border-b" key={item}>
-                  <a
-                    className="hover:text-pine flex min-h-11 items-center text-sm font-semibold underline-offset-4 hover:underline"
-                    href={`#${item.toLocaleLowerCase().replace(' ', '-')}`}
-                  >
-                    {item}
-                  </a>
-                </li>
-              ),
-            )}
+            {['Overview', 'Structured filters', 'Response'].map((item) => (
+              <li className="border-line border-b" key={item}>
+                <a
+                  className="hover:text-pine flex min-h-11 items-center text-sm font-semibold underline-offset-4 hover:underline"
+                  href={`#${item.toLocaleLowerCase().replace(' ', '-')}`}
+                >
+                  {item}
+                </a>
+              </li>
+            ))}
           </ol>
         </nav>
 
         <div className="grid gap-16">
           <section className="grid gap-6" id="overview">
             <div className="flex flex-wrap items-center gap-3">
-              <p className="eyebrow">Endpoint preview</p>
-              <Badge tone="warning">Phase 3 contract</Badge>
+              <p className="eyebrow">Shipped endpoint</p>
+              <Badge tone="positive">Live contract</Badge>
             </div>
             <h2>GET /api/v1/jobs</h2>
             <p className="lede">
@@ -111,17 +110,6 @@ function ApiPage() {
   }
 }`}</code>
             </pre>
-          </section>
-
-          <section className="grid gap-6" id="freshness">
-            <p className="eyebrow">Metadata</p>
-            <h2>Freshness is provider-specific.</h2>
-            <p className="lede">
-              <code>GET /api/v1/meta</code> reports each provider’s enabled or
-              suspended state, last successful ingestion, cycle status, active
-              count, and the live cache epoch. It does not invent a single
-              catalog-freshness badge.
-            </p>
           </section>
         </div>
       </div>

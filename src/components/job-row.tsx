@@ -1,9 +1,54 @@
 import { Link } from '@tanstack/react-router'
-import type { JobFixture } from '~/data/job-fixtures'
+import type { JobFixture, SourceKey } from '~/data/job-fixtures'
 import { DEFAULT_JOB_SEARCH } from '~/lib/job-search'
+import { SourceMark } from './source-mark'
 import { Badge } from './ui/badge'
 
-function formatSalary(job: JobFixture) {
+export type JobRowData = {
+  company: string
+  employmentType: string | null
+  firstSeenAt: string
+  id: string
+  locationSummary: string
+  salary: JobFixture['salary']
+  seniority: string | null
+  slug: string
+  sources: Array<{
+    label: string
+    marker: number
+    provider: SourceKey
+  }>
+  status: JobFixture['status']
+  tags: Array<{
+    filterable: boolean
+    normalized: string
+    sourceValue: string
+  }>
+  title: string
+}
+
+export function jobRowDataFromFixture(job: JobFixture): JobRowData {
+  return {
+    company: job.company,
+    employmentType: job.employmentType,
+    firstSeenAt: job.firstSeenAt,
+    id: job.id,
+    locationSummary: job.locationSummary,
+    salary: job.salary,
+    seniority: job.seniority,
+    slug: job.slug,
+    sources: job.sources.map((source) => ({
+      label: source.label,
+      marker: source.marker,
+      provider: source.key,
+    })),
+    status: job.status,
+    tags: job.tags,
+    title: job.title,
+  }
+}
+
+function formatSalary(job: JobRowData) {
   if (!job.salary) return null
   const formatter = new Intl.NumberFormat('en', {
     currency: job.salary.currency,
@@ -13,11 +58,22 @@ function formatSalary(job: JobFixture) {
   return `${formatter.format(job.salary.min)}–${formatter.format(job.salary.max)} / ${job.salary.period}`
 }
 
-export function JobRow({ job }: { job: JobFixture }) {
+function formatEnum(value: string | null) {
+  return value ? value.replaceAll('_', ' ') : 'Unknown'
+}
+
+export function JobRow({ job }: { job: JobRowData }) {
   return (
     <article className="job-row">
       <div className="grid gap-3">
-        <div className="text-ink-muted flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+        <div className="text-ink-muted flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
+          <span className="flex items-center gap-1.5">
+            {[...new Set(job.sources.map((source) => source.provider))].map(
+              (provider) => (
+                <SourceMark key={provider} provider={provider} />
+              ),
+            )}
+          </span>
           <span className="text-ink font-semibold">{job.company}</span>
           <span aria-label="Sources">
             {job.sources.map((source) => `[${source.marker}]`).join(' ')}
@@ -46,11 +102,11 @@ export function JobRow({ job }: { job: JobFixture }) {
           </div>
           <div>
             <dt>Employment</dt>
-            <dd>{job.employmentType.replace('_', ' ')}</dd>
+            <dd>{formatEnum(job.employmentType)}</dd>
           </div>
           <div>
             <dt>Seniority</dt>
-            <dd>{job.seniority}</dd>
+            <dd>{formatEnum(job.seniority)}</dd>
           </div>
           {formatSalary(job) ? (
             <div>

@@ -5,13 +5,14 @@ import { Badge } from '~/components/ui/badge'
 export const Route = createFileRoute('/skills/install')({
   head: () => ({
     meta: [
-      { title: 'Agent Skill installation preview — RemoteLens' },
+      { title: 'Agent Skill installation — RemoteLens' },
       {
         name: 'description',
         content:
-          'How the future RemoteLens Agent Skill will query public job data while keeping a selected CV local.',
+          'Install the repository-owned RemoteLens Agent Skill and compare public job data with a selected local CV.',
       },
     ],
+    links: [{ rel: 'canonical', href: '/skills/install' }],
   }),
   component: SkillInstallPage,
 })
@@ -23,40 +24,35 @@ function SkillInstallPage() {
         eyebrow="Agent Skill"
         title="Give your agent clean job data. Keep your CV local."
       >
-        The RemoteLens Agent Skill is an API-only client. It will query public
-        jobs, read only a CV file you explicitly select, and explain strengths,
-        gaps, and eligibility on your own computer.
+        The repository-owned RemoteLens Agent Skill queries public jobs, reads
+        only a CV file you explicitly select, and explains evidence, gaps, and
+        eligibility on your own computer.
       </PageIntro>
 
       <section className="mt-section grid gap-10 lg:grid-cols-12">
         <div className="grid gap-4 lg:col-span-4">
           <div className="flex flex-wrap items-center gap-3">
             <p className="eyebrow">Installation</p>
-            <Badge tone="warning">Phase 5 preview</Badge>
+            <Badge tone="positive">Repository package</Badge>
           </div>
-          <h2>No invented package command.</h2>
+          <h2>Install from GitHub.</h2>
         </div>
         <div className="content-prose lg:col-span-7 lg:col-start-6">
           <p>
-            The executable skill package is not published during Phase 0–1.
-            RemoteLens will document exact Codex and Claude Code installation
-            commands only after the repository-owned <code>SKILL.md</code> and
-            references exist in Phase 5.
+            The repository includes one installable skill package. The Skills
+            CLI installs it from GitHub and configures your supported agent.
           </p>
           <pre className="paper-code">
-            <code>{`# Preview only — do not run yet
-skills/remotelens/
-├── SKILL.md
-├── references/
-└── examples/`}</code>
+            <code>npx skills add windht/remotelens</code>
           </pre>
           <p>
-            Until then, use the fixture-backed website to review the intended
-            product boundary and the{' '}
+            Then open <code>skills/remotelens/examples/profile.yaml</code>, set
+            an explicit <code>api_base_url</code> and user-selected{' '}
+            <code>cv_path</code>, and use the{' '}
             <Link className="text-pine underline" to="/api">
               public API contract
             </Link>
-            .
+            . No private RemoteLens key is required.
           </p>
         </div>
       </section>

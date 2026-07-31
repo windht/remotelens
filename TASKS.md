@@ -1,4 +1,4 @@
-# RemoteLens Phase 0–1 Tasks
+# RemoteLens Full Delivery Tasks
 
 `TASKS.md` is the source of truth for this run. A task is checked only after its
 implementation, technical validation, acceptance cases, and worklog evidence
@@ -87,10 +87,197 @@ are complete.
     build, Cloudflare smoke, Playwright, and tracker synchronization.
   - Acceptance: all critical and relevant cases
 
-## Out of scope for this run
+## Phase 2 — Canonical jobs and deduplication
 
-- Phase 2 canonical merge application and DeepSeek calls
-- Phase 3 public API/feeds backed by D1
-- Phase 4 complete live-catalog website
-- Phase 5 executable Agent Skill
-- Phase 6 production D1, deployment, schedule activation, or bootstrap run
+- [x] **P2-001 — Extend the D1 model for canonical jobs and field provenance**
+  - Add canonical fields, normalized filter projections, job tags, field
+    provenance, stable slugs, and the indexes required by public reads.
+  - Acceptance: `ACC-CANONICAL-001`, `ACC-DB-002`
+- [x] **P2-002 — Implement deterministic canonical-field derivation**
+  - Parse only documented source evidence, preserve unknowns, select fields by
+    deterministic priority, and generate stable fingerprints and slugs.
+  - Acceptance: `ACC-CANONICAL-002`, `ACC-INGEST-003`
+- [x] **P2-003 — Implement deduplication decisions and canonical rebuilds**
+  - Apply exact identity/fingerprint merges, keep non-duplicates separate,
+    record append-only decisions, and use the bounded DeepSeek path only for
+    unresolved cross-source candidates.
+  - Acceptance: `ACC-CANONICAL-001`, `ACC-CANONICAL-003`, `ACC-DEDUPE-002`
+- [x] **P2-004 — Connect lifecycle, suspension, and provenance to canonical jobs**
+  - Keep canonical jobs public only when an enabled provider has an eligible
+    source record; preserve conflicts and source history through closure.
+  - Acceptance: `ACC-CANONICAL-004`, `ACC-FLAGS-002`, `ACC-STALE-002`
+- [x] **P2-005 — Add Phase 2 unit, migration, and integration coverage**
+  - Cover duplicate merges, separate listings, field selection, provenance,
+    stale/closed transitions, and repeatable rebuilds.
+  - Acceptance: all Phase 2 automated cases
+- [x] **P2-006 — Pass the Phase 2 validation gate**
+  - Format, lint, typecheck, unit/integration tests, migrations, build, and
+    Cloudflare dry-run pass with tracker evidence.
+  - Acceptance: `ACC-OPS-002`
+
+## Phase 3 — Public API and feeds
+
+- [x] **P3-001 — Implement the versioned public API contract**
+  - Add `/api/v1/jobs`, `/api/v1/jobs/:id`, `/api/v1/taxonomy`, and
+    `/api/v1/meta` with stable Zod-validated envelopes and request IDs.
+  - Acceptance: `ACC-API-001`, `ACC-API-002`, `ACC-API-003`
+- [x] **P3-002 — Implement exact filters and opaque cursor pagination**
+  - Support the documented structured filters, sort modes, eligibility rules,
+    same-currency salary constraints, cursor binding, and invalid-filter errors.
+  - Acceptance: `ACC-API-001`, `ACC-API-004`
+- [x] **P3-003 — Implement JSON/RSS feeds, OpenAPI, CORS, caching, and limits**
+  - Add active-job feeds, OpenAPI output, epoch-keyed successful-response
+    caching, public GET/HEAD CORS, and the 120 requests/minute API guard.
+  - Acceptance: `ACC-API-003`, `ACC-API-005`
+- [x] **P3-004 — Add API contract and regression tests**
+  - Validate response schemas, provenance, cursor rejection, empty versus
+    malformed filters, feed output, security headers, and method boundaries.
+  - Acceptance: all Phase 3 automated cases
+- [x] **P3-005 — Pass the Phase 3 validation gate**
+  - Format, lint, typecheck, unit/integration tests, production build, and
+    direct HTTP API smoke checks pass.
+  - Acceptance: `ACC-OPS-003`
+
+## Phase 4 — Live public SSR website
+
+- [x] **P4-001 — Replace fixture-only public reads with the live catalog service**
+  - Use D1-backed canonical jobs for SSR and client navigation, with sanitized
+    fixtures retained only as an explicit local empty-catalog fallback.
+  - Acceptance: `ACC-WEB-001`, `ACC-WEB-002`
+- [x] **P4-002 — Complete live provenance, freshness, SEO, and empty/error states**
+  - Render source destinations, conflicts, field origins, provider freshness,
+    canonical metadata, sitemap behavior, and safe unavailable-catalog states.
+  - Acceptance: `ACC-WEB-003`, `ACC-WEB-004`
+- [x] **P4-003 — Update API and Skill documentation for shipped behavior**
+  - Remove Phase 3/5 preview claims and document the live endpoints, limits,
+    installation package, and client-local CV boundary.
+  - Acceptance: `ACC-WEB-005`
+- [x] **P4-004 — Run desktop/mobile, no-JavaScript, keyboard, and axe coverage**
+  - Exercise critical routes against the live-catalog adapter and retain the
+    Phase 0 regression coverage.
+  - Acceptance: `ACC-WEB-001`, `ACC-WEB-006`
+- [x] **P4-005 — Pass the Phase 4 validation gate**
+  - Full relevant browser, accessibility, build, and HTTP smoke checks pass.
+  - Acceptance: `ACC-OPS-004`
+
+## Phase 5 — RemoteLens Agent Skill
+
+- [x] **P5-001 — Ship the repository-owned Agent Skill package**
+  - Add `skills/remotelens/SKILL.md`, API, matching, CV-safety, client-local
+    workflow references, and the example configuration.
+  - Acceptance: `ACC-SKILL-001`
+- [x] **P5-002 — Document Codex, Claude Code, and generic installation**
+  - Provide copyable installation and configuration instructions without
+    inventing an unavailable package registry or requiring a private API key.
+  - Acceptance: `ACC-SKILL-002`
+- [x] **P5-003 — Add local matching and prompt-injection safety coverage**
+  - Verify selected-file-only CV reads, structured API use, explainable matches,
+    no CV upload, no tracker mutation, and untrusted-content refusal.
+  - Acceptance: `ACC-SKILL-003`, `ACC-SKILL-004`
+- [x] **P5-004 — Pass the Phase 5 validation gate**
+  - Markdown/package checks, safety tests, browser documentation checks, and
+    tracker evidence pass.
+  - Acceptance: `ACC-OPS-005`
+
+## Phase 6 — Production deployment and hardening
+
+- [x] **P6-001 — Create and migrate the production D1 catalog**
+  - Replace placeholder binding metadata with the real Hutong531 D1 database,
+    apply all migrations, and verify schema/readback without exposing secrets.
+  - Acceptance: `ACC-PROD-001`
+- [x] **P6-002 — Deploy the Worker and direct scheduled Workflow**
+  - Deploy the validated application with both providers enabled, the
+    `0 */12 * * *` Workflow schedule, security headers, and observability.
+  - Acceptance: `ACC-PROD-002`, `ACC-PROD-003`
+- [x] **P6-003 — Run authenticated initial ingestion and verify public reads**
+  - Trigger the first Workflow run through authenticated Wrangler tooling,
+    inspect bounded run summaries, and verify the site/API against production.
+  - Acceptance: `ACC-PROD-004`, `ACC-PROD-005`
+- [x] **P6-004 — Add the backup/export and operations runbook**
+  - Document safe export, restore/time-travel, provider suspension, failed-run
+    diagnosis, secret hygiene, and process cleanup.
+  - Acceptance: `ACC-PROD-006`
+- [x] **P6-005 — Verify independent provider suspension and recovery**
+  - Exercise WWR suspension/re-enable semantics without deleting or mass-closing
+    its retained source records.
+  - Acceptance: `ACC-PROD-007`
+- [x] **P6-006 — Pass the production acceptance gate**
+  - Confirm schedule, bootstrap, API/site availability, freshness metadata,
+    security, and no required blocker remains.
+  - Acceptance: `ACC-OPS-006`
+
+## Phase 7 — Browser-comment product refinement
+
+- [x] **P7-001 — Simplify the public information architecture**
+  - Rename the primary Jobs navigation item to Index, remove Sources and
+    Methodology from the primary product navigation, preserve safe redirects,
+    remove the DevOps exclusion warning, and remove the API freshness section.
+  - Acceptance: `ACC-REFINE-001`
+- [x] **P7-002 — Restore the selected landing-page direction**
+  - Recompose the landing hero and trust ledger around the reviewed Stitch
+    direction and render the ten latest jobs as the landing preview.
+  - Acceptance: `ACC-REFINE-002`
+- [x] **P7-003 — Rebuild the dedicated Index layout and filters**
+  - Remove the oversized browse hero, use a compact sticky horizontal filter
+    row, replace native enhanced selects with shadcn/Radix Select while
+    retaining no-JavaScript fallbacks, and preserve shareable GET URLs.
+  - Acceptance: `ACC-REFINE-003`, `ACC-REFINE-005`
+- [x] **P7-004 — Add bounded SSR and infinite result loading**
+  - Server-render at most ten matching jobs, report the complete matching
+    count, and append subsequent cursor-backed API pages on intersection with
+    accessible loading, retry, and completion states.
+  - Acceptance: `ACC-REFINE-004`
+- [x] **P7-005 — Add provider branding and publishable Skill install command**
+  - Render local Remote OK/WWR favicon-derived marks in job rows and replace
+    checkout-copy instructions with the GitHub-ready `npx skills add` command.
+  - Acceptance: `ACC-REFINE-006`
+- [x] **P7-006 — Pass targeted and full validation**
+  - Run formatting, lint, typecheck, unit/integration tests, production build,
+    desktop/mobile/no-JavaScript Playwright coverage, visual browser review,
+    and production deployment verification.
+  - Acceptance: `ACC-OPS-007`
+
+## Phase 8 — Public domain and Skill install correction
+
+- [x] **P8-001 — Correct the repository Skill install command**
+  - Use the publishable repository command
+    `npx skills add windht/remotelens` consistently across the installation
+    page, repository documentation, Skill references, and tests.
+  - Acceptance: `ACC-SKILL-005`
+- [x] **P8-002 — Bind the production Worker to remotelens.co**
+  - Add the apex custom domain to the selected Hutong531 Cloudflare zone and
+    make `https://remotelens.co` the production site/API origin without
+    disabling the existing workers.dev fallback.
+  - Acceptance: `ACC-DOMAIN-001`
+- [x] **P8-003 — Validate and deploy the domain correction**
+  - Run the relevant full validation, production dry run, deploy, DNS/TLS/HTTP
+    verification, canonical-URL checks, and process cleanup.
+  - Acceptance: `ACC-OPS-008`
+
+## Phase 9 — Open-source release hygiene
+
+- [x] **P9-001 — Audit repository and Git history for sensitive material**
+  - Inspect tracked, ignored, untracked, generated, and all reachable Git blob
+    content for credentials, private keys, tokens, local paths, personal
+    identifiers, and unnecessary production-resource metadata without printing
+    secret values.
+  - Acceptance: `ACC-OSS-001`
+- [x] **P9-002 — Sharpen README for public users**
+  - Replace internal phase, deployment, operator, and tracker narration with a
+    concise product overview, live links, Agent Skill installation, public API
+    examples, local setup, validation, architecture, and contribution guidance.
+  - Acceptance: `ACC-OSS-002`
+- [ ] **P9-003 — Pass the open-source release gate**
+  - Validate documentation formatting and links, rerun repository secret and
+    history checks, run relevant technical validation, synchronize evidence,
+    and confirm process cleanup.
+  - Acceptance: `ACC-OSS-003`
+
+## Operator-directed Cloudflare setup
+
+- [x] **OPS-001 — Bind the project to the Hutong531 Cloudflare account and
+      upload local secrets**
+  - Uploaded `DEEPSEEK_API_KEY`, `DEEPSEEK_API_BASE_URL`,
+    `DEEPSEEK_API_MODEL`, and `API_CURSOR_SECRET` as encrypted Worker secrets.
+  - No secret values are stored in the trackers or Wrangler configuration.
+  - Acceptance: `ACC-CF-SECRETS-001`

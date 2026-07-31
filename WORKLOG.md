@@ -1,10 +1,138 @@
-# RemoteLens Phase 0–1 Worklog
+# RemoteLens Full Delivery Worklog
 
 ## Current status
 
-**Phase:** Phase 0–1 complete  
-**Current task:** None — all scoped tasks are complete  
-**Current acceptance:** All critical and relevant cases passed
+**Phase:** Phase 9 — Open-source release hygiene<br>
+**Current task:** P9-003 — Pass the open-source release gate<br>
+**Current acceptance:** ACC-OSS-003<br>
+**Goal status:** Blocked on destructive-pruning authorization and license choice
+
+### Open-source release audit started — 2026-07-31
+
+- The user requested a pre-publication check for material leaked into Git and a
+  README containing only public user-facing content.
+- The audit covers the working tree, ignored/generated files, all reachable Git
+  blobs, credential patterns, local paths, personal identifiers, and production
+  resource metadata. Secret values must not be printed during inspection.
+- Confirmed the repository has one reachable commit and no configured remote.
+  No reachable commit, ref, reflog entry, or publishable working-tree file
+  matches common private-key, cloud-key, GitHub, Slack, Stripe, or JWT
+  credential patterns.
+- Confirmed `.dev.vars` is populated locally but ignored, was never committed,
+  and is not reachable from any Git ref. Only `.env.example` and
+  `.dev.vars.example` are tracked; their credential fields are empty or
+  documented placeholders.
+- Found one unreachable Git blob containing the same populated DeepSeek key as
+  the current ignored `.dev.vars`. It is not reachable by a normal push, but
+  removing it requires `git gc --prune=now`-style destructive cleanup that
+  would discard all unreachable recovery objects. This was not run without
+  explicit authorization.
+- Classified the committed/working Cloudflare account and D1 IDs as resource
+  identifiers, not authentication credentials. They allow no access without
+  Cloudflare authentication. No personal email or machine-specific user path
+  remains in the publishable working tree.
+- Replaced the README with public product, live-site, Agent Skill, API,
+  privacy/source, contributor setup, validation, and technology content.
+  Removed internal phase, operator, deployment, and tracker narration.
+- Added `scripts/sanitize-build-output.mjs`; every `pnpm build` now removes
+  generated `.env` and `.dev.vars` copies from `dist` after Vite completes.
+- README formatting passed, all three local links exist, the live Index/API/
+  Skill/privacy routes and documented API example returned HTTP 200, and
+  publishable/reachable credential-pattern rescans returned no findings.
+- `pnpm validate` passed after the release-hardening change: formatting, lint,
+  TypeScript, 47/47 tests, 4/4 migration tests, and production build. Post-build
+  readback found no `.env` or `.dev.vars` file under `dist`.
+
+## Blockers
+
+- The repository has no `LICENSE`, `COPYING`, or equivalent file. Open-source
+  publication needs the owner to choose the license; no license was guessed.
+- Destructive pruning of all unreachable Git objects requires explicit
+  authorization. A normal push is safe from the unreachable blob, but a full
+  `.git` directory archive would not be.
+
+### Domain/install correction started — 2026-07-31
+
+- The user confirmed the remaining design and behavior are accepted.
+- The requested repository installation command is
+  `npx skills add windht/remotelens`; the missing final `n` in the browser
+  comment is treated as a typo because the repository and product are named
+  `remotelens`.
+- Public DNS initially returned NXDOMAIN while the new Cloudflare zone was
+  activating. Readback then confirmed active zone
+  `e1d3efb38952809b28e954a837206249` in the selected Hutong531 account with
+  nameservers `jeremy.ns.cloudflare.com` and `margot.ns.cloudflare.com`.
+- Replaced the public install command and client-local workflow reference with
+  exactly `npx skills add windht/remotelens`; updated browser coverage and added
+  an exact unit-test assertion that rejects the obsolete selector.
+- Added the `remotelens.co` custom-domain route to the production Wrangler
+  configuration while keeping `workers_dev: true`; production site/API origins
+  now point to the apex.
+- Targeted validation passed: Skill tests (3/3), TypeScript, production
+  Wrangler dry run, and `git diff --check`.
+- Full `pnpm validate` passed after the final responsive adjustment: formatting,
+  lint, TypeScript, 47/47 tests across 10 files, 4/4 migration tests, and the
+  production build.
+- Local `pnpm test:e2e` passed 18 applicable desktop/mobile cases with 10
+  production-only cases skipped as designed.
+- Deployed the apex custom-domain route and preserved the workers.dev fallback.
+  Final production version: `64a85888-d1de-4daf-9697-a42785115030`.
+- Public Cloudflare DNS-over-HTTPS returned the expected two nameservers and
+  Cloudflare anycast A records. TLS verification returned zero errors; `/`,
+  redirected `/jobs`, `/skills/install`, and `/api/v1/meta` returned HTTP 200.
+  The metadata endpoint reported 169 active jobs, a successful last cycle, and
+  both providers healthy.
+- Production RSS entries use `https://remotelens.co/jobs/...` absolute links.
+  The Skill page contains only `npx skills add windht/remotelens`, while the
+  obsolete selector and checkout-copy instructions are absent.
+- The first production infinite-loading check ran during edge propagation and
+  timed out with the initial ten rows. Direct request tracing confirmed the
+  cursor endpoint and observer were healthy; two subsequent full
+  desktop/mobile production runs passed all four cases, including infinite
+  loading, navigation, redirects, accessibility, and the Skill command.
+- Separate desktop/mobile visual QA found and fixed a 28-pixel mobile overflow
+  in the installation prose grid. Final 390-pixel viewport readback was
+  `scrollWidth: 390`, and the command was visible without clipping.
+- Process cleanup passed: the persistent Playwright browser reported
+  disconnected after close; no listener remained on ports 4173 or 8787.
+
+### Browser-comment refinement started — 2026-07-31
+
+- The user supplied twelve production-page comments covering information
+  architecture, landing/Index composition, filtering, pagination, provider
+  marks, and Skill installation.
+- The current implementation preserved the Field Index tokens but diverged
+  from the selected Stitch composition through an oversized browse hero,
+  permanent filter sidebar, redundant editorial routes, and up to 100
+  server-rendered result rows.
+- Phase 7 was added before implementation with separate acceptance coverage for
+  navigation, landing composition, horizontal filters, Radix Select, bounded
+  SSR/infinite loading, provider marks, publishable Skill installation, and
+  production verification.
+
+### Full-plan execution started — 2026-07-31
+
+- The user asked to finish the complete RemoteLens delivery plan.
+- Phases 0–5 are implemented, validated, accepted, and synchronized.
+- One phase remained: Phase 6, with six production tasks (P6-001 through P6-006).
+- Production work must not be marked complete until live D1, deployment,
+  ingestion, public-read, operations, and recovery evidence is recorded.
+
+### Operator-directed Cloudflare setup — 2026-07-31
+
+- Selected the Hutong531 Cloudflare account
+  `d06a8c795d2fd2c7718ed48c534dc2ba` and recorded it in `wrangler.jsonc`.
+- Confirmed all four requested entries in `.dev.vars` were non-empty without
+  printing their values.
+- Uploaded `DEEPSEEK_API_KEY`, `DEEPSEEK_API_BASE_URL`,
+  `DEEPSEEK_API_MODEL`, and `API_CURSOR_SECRET` with Wrangler bulk secrets.
+- Because the Worker did not previously exist, Wrangler created `remotelens`
+  and Cloudflare automatically created an initial upload deployment followed by
+  a secret-change version.
+- Verified all four remote bindings are `secret_text`.
+- No application bundle, Workflow schedule, or source ingestion was deployed or
+  activated by this setup operation. The production D1 was created and
+  migrated later under Phase 6 progress below.
 
 ## Completed
 
@@ -50,28 +178,217 @@
   payload, R2 object, production D1 mutation, secret, or production deployment
   was created.
 
+### Phase 2
+
+- Extended the D1 jobs projection with canonical structured fields, stable
+  fingerprints/IDs/slugs, lifecycle timestamps, filter projections, tags, and
+  field-level provenance.
+- Implemented deterministic field derivation from sanitized source text,
+  source-priority selection, conflict-preserving source associations, and
+  repeatable canonical rebuilds.
+- Implemented exact duplicate grouping, append-only dedupe decisions, bounded
+  OpenAI-compatible DeepSeek semantic fallback, structured response validation,
+  retry/error recording, and the hard maximum of 50 semantic candidates per
+  run.
+- Connected canonical visibility to source health, source lifecycle, provider
+  suspension, and retained provenance/source history.
+- Added canonical schema, deterministic merge/separation, semantic contract,
+  stable rebuild, lifecycle, and suspension integration coverage.
+
+### Phase 3
+
+- Added the versioned `/api/v1` contract for job lists, job detail, taxonomy,
+  and provider/catalog metadata with signed request-bound cursors and stable
+  Zod-validated response/error envelopes.
+- Added exact structured eligibility, company, source, tag, salary, date,
+  status, timezone, and enum filters. Unknown exact companies/tags return empty
+  `200` results; malformed fixed values return `invalid_filter` `400`.
+- Added active-only JSON/RSS feeds, maintained `docs/openapi.json`, public
+  GET/HEAD/OPTIONS CORS, epoch-keyed successful-response caching, security
+  headers, request IDs, and the Cloudflare `API_RATE_LIMITER` binding at
+  `120 requests/60s`.
+- Added direct API contract coverage for pagination, cursor rejection,
+  provenance, filters, feeds, OpenAPI, methods, CORS, rate errors, and cache
+  behavior in `tests/api/public-api.test.ts`.
+
+### Phase 4
+
+- Replaced fixture-only public reads with D1-backed SSR catalog reads, retaining
+  sanitized fixtures only as an explicit local empty-catalog fallback.
+- Added safe unavailable-catalog states, live role-family filtering,
+  provider-specific freshness, source destinations, conflict preservation,
+  canonical URLs, and noindex metadata for stale/closed jobs.
+- Updated API and Skill documentation to shipped behavior and added live D1
+  seed/cleanup fixtures plus external Worker Playwright coverage.
+
+### Phase 5
+
+- Added the repository-owned `skills/remotelens/` package with API, matching,
+  CV-safety, client-local workflow references, and an example configuration.
+- Added deterministic explainable matching and safety tests covering evidence
+  citations, selected-file-only access, untrusted job/CV text, and the explicit
+  no-upload/no-scraping/no-tracker-mutation/no-submission boundary.
+- Added `pnpm skill:check` and updated the installation route and README.
+
+### Phase 6 progress
+
+- Created the APAC production D1 `remotelens-catalog` and replaced the
+  placeholder binding ID in `wrangler.jsonc`.
+- Applied both repository migrations remotely and verified migration rows,
+  expected tables/indexes, no raw-payload table, and zero pre-bootstrap data.
+- Added `docs/operations.md` covering export, Time Travel restore, diagnosis,
+  provider suspension/recovery, secret hygiene, production smoke, and cleanup.
+- Added `wrangler.production.jsonc` plus `cf:prod-dry-run`/`cf:prod-deploy`
+  scripts so production values and the built Worker bundle are explicit while
+  local development retains fixture-safe defaults.
+- Rotated `API_CURSOR_SECRET` with a newly generated value without printing it.
+- The user confirmed that the existing DeepSeek key may be reused and confirmed
+  rate-limit namespace `1001`; no key value was recorded or printed.
+- Deployed the validated Worker and direct Workflow. The final production
+  deployment version was `e4df130f-027e-4309-beb0-17aaadc02255`.
+- Completed authenticated bootstrap instance
+  `729efeff-d0fa-4ffd-be4b-af4a0180e5cb`: Remote OK admitted 2 of 100 fetched;
+  WWR admitted 167 of 199 fetched; final cache epoch was
+  `epoch:763407dc068ddc9ecb354f7a`.
+- Verified production D1 readback: 169 active jobs, 2 active Remote OK records,
+  167 active WWR records, healthy/enabled provider rows, and three successful
+  cycles.
+- Completed controlled WWR suspension/recovery: public visibility dropped to
+  the 2 Remote OK jobs during suspension while 167 WWR records were retained,
+  then recovered to 169 jobs after re-enabling WWR.
+
+### Phase 7
+
+- Focused the public information architecture on `Index`, `Agent Skill`, and
+  `API`; retired `/sources` and `/methodology` now redirect to compact landing
+  disclosures.
+- Removed the DevOps/Sysadmin warning and the API freshness section.
+- Rebuilt the landing page around the selected asymmetric Stitch direction and
+  a ten-job latest ledger.
+- Made `/jobs` a dedicated Index with a compact sticky horizontal filter row,
+  shadcn/Radix Select controls, native no-JavaScript fallbacks, and shareable
+  GET URLs.
+- Bounded landing and Index SSR to ten jobs, retained the complete matching
+  count, and added cursor-backed infinite loading in batches of ten with
+  loading, retry, manual fallback, de-duplication, and terminal states.
+- Embedded local favicon-derived Remote OK and We Work Remotely marks.
+- Updated the Agent Skill installation command to
+  `npx skills add windht/remotelens`.
+- Added production-only Phase 7 Playwright acceptance coverage and direct
+  Workers-IP routing support for environments whose local proxy cannot reach
+  `workers.dev`.
+- Corrected Cloudflare asset routing so dynamic canonical paths execute the
+  current Worker before static-asset lookup while hashed `/assets/*` files
+  remain direct. Dynamic HTML now returns `Cache-Control: no-store`.
+- Deployed final production version
+  `77472bf9-cd45-47e0-910a-46347a339308`.
+
 ## Validation
 
 - `pnpm install` — Passed.
 - `pnpm cf:typegen` — Passed; generated D1 and Workflow binding types.
-- `pnpm validate` — Passed:
+- Phase 0–1 baseline `pnpm validate` — Passed:
   - format check — Passed;
   - ESLint — Passed;
   - strict TypeScript — Passed;
   - Vitest — 7 files, 33 tests passed;
   - migration assertions — 3 tests passed;
   - production Worker build — Passed.
+- Phase 2 `pnpm format:check` — Passed.
+- Phase 2 `pnpm lint` — Passed.
+- Phase 2 `pnpm typecheck` — Passed.
+- Phase 2 `pnpm test` — Passed; 8 files, 37 tests.
+- Phase 2 `pnpm db:migrate:check` — Passed; 4 migration assertions.
+- Phase 2 `pnpm build` — Passed.
+- Phase 2 `pnpm cf:dry-run` — Passed; canonical Worker bundle, D1 binding, and
+  direct Workflow binding resolved.
+- Phase 3 `pnpm format:check` — Passed.
+- Phase 3 `pnpm lint` — Passed.
+- Phase 3 `pnpm typecheck` — Passed.
+- Phase 3 `pnpm test` — Passed; 9 files, 43 tests.
+- Phase 3 `pnpm db:migrate:check` — Passed; 4 migration assertions.
+- Phase 3 `pnpm build` — Passed.
+- Phase 3 `pnpm cf:dry-run` — Passed; `API_RATE_LIMITER` resolved as
+  `120 requests/60s`, D1 and Workflow bindings remained resolved.
+- Phase 3 direct HTTP smoke — Passed through local Wrangler Worker on
+  `127.0.0.1:8787`: `GET`, `HEAD`, `OPTIONS`, malformed filters, mutation,
+  feeds, and OpenAPI returned the expected status, headers, and envelopes.
 - `pnpm db:migrate:local` — Passed; 27 migration commands applied to the local
   disposable D1 state.
 - Second `pnpm db:migrate:local` — Passed; reported no migrations to apply.
+- After wiring the real production D1 ID, the fresh local D1 state required
+  `pnpm db:migrate:local` again; 27 and 33 migration commands then passed across
+  the two migrations.
 - `pnpm cf:dry-run` — Passed; resolved `CATALOG_INGESTION` as
   `CatalogIngestionWorkflow` and `DB` as the D1 binding.
-- `pnpm test:e2e` — Passed; 16/16 desktop/mobile Chromium cases.
+- `pnpm test:e2e` — Passed after the canonical SSR rebuild fix; 16/16
+  desktop/mobile Chromium cases.
+- Initial post-binding `pnpm test:e2e` — Failed 6 cases because the new local
+  D1 state had not yet been migrated; no code failure was present.
+- Rerun after local migration — Passed; 16/16 public-shell desktop/mobile
+  Chromium cases, with 6 live-catalog cases intentionally skipped by default.
+- External live-catalog Playwright run — Passed; 3/3 tests against the local
+  Wrangler Worker with live D1 seed data.
+- `pnpm skill:check` — Passed; 3 deterministic Skill contract and safety tests.
+- Phase 4–5 final validation — Passed: `pnpm format:check`, `pnpm lint`,
+  `pnpm typecheck`, `pnpm test` (10 files, 47 tests),
+  `pnpm db:migrate:check` (4 assertions), `pnpm build`, and `pnpm cf:dry-run`.
+- `pnpm cf:prod-dry-run` — Passed with `wrangler.production.jsonc`: production
+  APP_ENV/URLs, real D1, direct Workflow schedule, both providers,
+  observability, and rate-limit binding resolved.
+- `wrangler secret list` against the selected account — Passed; four requested
+  names returned as `secret_text`.
+- `wrangler deployments list` against the selected account — Passed; initial
+  upload and secret-change versions present.
 - Playwright axe checks — Passed with no serious or critical violations on all
   critical routes.
 - JavaScript-disabled structured-filter case — Passed on desktop and mobile.
 - Mobile overflow and screenshot assertions — Passed at 390×844.
 - Desktop responsive assertions — Passed at 1440×1000.
+- `CLOUDFLARE_ACCOUNT_ID=... pnpm exec wrangler d1 migrations list
+remotelens-catalog --remote --config wrangler.production.jsonc` — Passed;
+  no migrations to apply.
+- Production D1 readback with the account pinned — Passed; 169 active jobs,
+  2 Remote OK records, 167 WWR records, 3 successful cycles, cache epoch
+  `epoch:763407dc068ddc9ecb354f7a`, and both providers enabled/healthy.
+- `pnpm exec wrangler workflows list --config wrangler.production.jsonc` —
+  Passed; `remotelens-catalog-ingestion` is registered as
+  `CatalogIngestionWorkflow` on `remotelens`.
+- `pnpm exec wrangler workflows instances list remotelens-catalog-ingestion
+--config wrangler.production.jsonc` — Passed; latest instance completed.
+- Authenticated Workflow instance description — Passed; instance
+  `729efeff-d0fa-4ffd-be4b-af4a0180e5cb` completed its claim, Remote OK, WWR,
+  and finalization steps successfully.
+- Production HTTP smoke — Passed; home, metadata, jobs, taxonomy, OpenAPI,
+  `/feeds/jobs.json`, and `/feeds/jobs.xml` returned expected `200` responses;
+  `/api/v1/feeds/jobs.json` correctly returned `404`.
+- Production Chromium smoke — Passed; seven dynamic routes rendered, security
+  headers were present, no serious/critical axe violations were found, and no
+  horizontal overflow was detected. The browser closed in `finally`.
+- Final `pnpm validate` — Passed after tracker synchronization: Prettier,
+  ESLint, strict TypeScript, 10 Vitest files/47 tests, 4 migration assertions,
+  and the production build.
+- Final `pnpm cf:prod-dry-run` — Passed after tracker synchronization; the
+  production D1, direct Workflow, both provider flags, observability, and
+  `API_RATE_LIMITER` (`120 requests/60s`, namespace `1001`) resolved.
+- Final `pnpm test:e2e` — Passed: 16 desktop/mobile Chromium tests; 6 live-D1
+  fixture tests intentionally skipped by default.
+- `git diff --check` — Passed.
+- Phase 7 `pnpm validate` — Passed twice after the mobile toolbar and
+  Worker-first routing changes: Prettier, ESLint, strict TypeScript, 10 Vitest
+  files/47 tests, 4 migration assertions, and the production build.
+- Phase 7 `pnpm test:e2e` — Passed: 18 desktop/mobile cases, with 6 live-D1
+  fixture cases and 4 production-only cases intentionally skipped by default.
+- Phase 7 `pnpm cf:prod-dry-run` — Passed with the production D1, Workflow,
+  rate limiter, static assets, and selective Worker-first routing resolved.
+- Phase 7 production HTTP verification — Passed: landing and Index canonical
+  HTML each contained exactly ten job rows; retired routes returned 301; the
+  DevOps warning and API freshness section were absent; and the GitHub-ready
+  Skill command was present.
+- Phase 7 production Playwright — Passed 4/4 desktop/mobile cases against the
+  final deployment. Infinite scroll appended cursor-backed pages without
+  duplicate job URLs, mobile toolbar height remained below 160px, and axe
+  reported no serious or critical issues.
 
 ## Live development fetch
 
@@ -94,8 +411,24 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 - All Phase 1 database, Remote OK, WWR, Workflow, locking, idempotency, health,
   partial-run, lifecycle, suspension, cache-epoch, dedupe-foundation, and live
   fetch cases passed.
+- All Phase 2 schema, canonicalization, field-derivation, semantic-dedupe,
+  lifecycle, suspension, and repeatable-rebuild cases passed.
+- All Phase 3 public API, cursor, feed, OpenAPI, CORS, caching, rate-limit, and
+  direct HTTP acceptance cases passed.
+- All Phase 4 live SSR, filtering, provenance, freshness, SEO, safe-state,
+  responsive, accessibility, and documentation cases passed.
+- All Phase 5 package, installation, explainable matching, and prompt-injection
+  safety cases passed.
+- All Phase 6 acceptance cases passed: production D1, deployment and schedule,
+  authenticated bootstrap, public reads, refreshed provenance, runbook, and
+  non-destructive WWR suspension/recovery.
+- `ACC-OPS-006` passed with no unresolved required blocker.
+- All Phase 7 refinement cases passed: focused navigation and redirects,
+  selected landing composition, sticky horizontal filters, Radix/native
+  select flows, bounded SSR and cursor loading, provider marks, Skill
+  installation, production visuals, and deployment routing.
+- `ACC-OPS-007` passed with no unresolved required blocker.
 - `ACCEPTANCE.md` contains the exact user/operator steps and current results.
-- No acceptance case remains pending, failed, blocked, or unjustifiably not run.
 
 ## Evidence
 
@@ -105,35 +438,67 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
   `test-results/public-shell-public-shell--6a92a--has-no-horizontal-overflow-mobile-chromium/`.
 - Unit and fixture contracts: `tests/unit/` and `tests/fixtures/`.
 - Lifecycle/incremental tests: `tests/integration/catalog-engine.test.ts`.
+- Canonicalization, semantic dedupe, lifecycle, and provenance tests:
+  `tests/integration/canonical-jobs.test.ts`.
+- Public API contract tests: `tests/api/public-api.test.ts`.
+- OpenAPI contract: `docs/openapi.json`.
 - Migration/schema assertions: `tests/migrations/schema.test.ts`.
 - D1 migration: `drizzle/migrations/0000_complex_changeling.sql`.
+- Canonical D1 migration: `drizzle/migrations/0001_canonical_jobs.sql`.
 - Cloudflare configuration: `wrangler.jsonc`.
+- Production deployment configuration: `wrangler.production.jsonc`.
 - In-memory live-check command: `scripts/live-fetch.ts`.
+- Live catalog seed/cleanup: `tests/fixtures/live-catalog.sql` and
+  `tests/fixtures/clear-live-catalog.sql`.
+- Live Worker browser coverage: `tests/e2e/live-catalog.spec.ts`.
+- Final production browser smoke: dynamic Chromium run against
+  `https://remotelens.hutong531.workers.dev`; output recorded above.
+- Agent Skill package and safety coverage: `skills/remotelens/` and
+  `tests/unit/remotelens-skill.test.ts`.
+- Phase 7 production browser coverage:
+  `tests/e2e/phase7-production.spec.ts`.
+- Phase 7 desktop/mobile landing, Index, and Skill screenshots:
+  `test-results/phase7-production-Phase-7--07a84-R-then-appends-cursor-pages-*/`
+  and
+  `test-results/phase7-production-Phase-7--023d4-edirects-API-and-Skill-copy-*/`.
 
 ## Process cleanup
 
 - Playwright started the isolated preview on `127.0.0.1:4173` and stopped it
   after each browser run.
 - Verified no task-owned Vite, Workerd, Playwright, or TSX process remains.
-- Verified TCP port 4173 is not listening.
+- Verified the latest Playwright preview exited cleanly and TCP ports 4173 and
+  8787 are not listening. No task-owned Vite, Workerd, Playwright, or Wrangler
+  dev process remains.
+- The pre-existing `agent-browser` process with PID `34220` belongs to an
+  unrelated checkout and was left untouched.
+- The task-owned in-app browser verification tab was finalized; zero tabs
+  remained. Production Playwright browsers exited after the four acceptance
+  cases, and TCP port 4173 was not listening after the local suite.
 
 ## Next
 
-- None within the approved Phase 0–1 scope.
-- Phase 2 canonical merge application, semantic dedupe execution, later public
-  APIs/feeds, executable Agent Skill behavior, production D1 resources,
-  production deployment, and schedule activation require explicit direction.
+- None. All required Phase 0–7 tasks, acceptance cases, validation, and tracker
+  updates are complete.
 
 ## Known risks
 
-- Live provider shapes can drift; the strict adapters intentionally reject
+- Local D1 validation uses Wrangler local state and deterministic migration
+  assertions; production D1 creation/migration was separately verified by
+  remote Wrangler readback.
+- Production provider shapes can drift; the strict adapters intentionally reject
   malformed or ambiguous records and retain only bounded health evidence.
-- The local D1 validation uses Wrangler local state and deterministic migration
-  assertions; no remote or production D1 migration was attempted.
-- Cloudflare Workflow schedules were schema-validated, type-generated, bundled,
-  and dry-run validated, but not activated because production deployment is out
-  of scope.
+- Live catalog counts and freshness are a point-in-time production snapshot;
+  the direct Workflow refreshes them every 12 hours.
+- The local proxy intermittently returned `ERR_CONNECTION_CLOSED` for
+  `workers.dev`; final production verification bypassed only that local proxy
+  with the public Cloudflare edge IP while preserving the production hostname,
+  TLS, and browser behavior.
+- The existing DeepSeek key is reused only under the user's explicit
+  authorization. Its value is not stored in the repository or trackers.
 
 ## Blockers
 
-- None.
+- None. The user authorized reuse of the existing DeepSeek key and confirmed
+  rate-limit namespace `1001`; production deployment, ingestion, public reads,
+  and suspension/recovery were subsequently verified.

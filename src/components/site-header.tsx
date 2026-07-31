@@ -2,11 +2,9 @@ import { Link } from '@tanstack/react-router'
 import { BrandMark } from './brand-mark'
 
 const links = [
-  { label: 'Jobs', to: '/jobs' },
-  { label: 'Sources', to: '/sources' },
-  { label: 'Methodology', to: '/methodology' },
-  { label: 'API', to: '/api' },
+  { label: 'Index', to: '/jobs' },
   { label: 'Agent Skill', to: '/skills/install' },
+  { label: 'API', to: '/api' },
 ] as const
 
 function NavigationLinks({ mobile = false }: { mobile?: boolean }) {

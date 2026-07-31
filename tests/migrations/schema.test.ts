@@ -9,6 +9,9 @@ const migrationPath = fileURLToPath(
     import.meta.url,
   ),
 )
+const canonicalMigrationPath = fileURLToPath(
+  new URL('../../drizzle/migrations/0001_canonical_jobs.sql', import.meta.url),
+)
 
 let database: DatabaseSync | undefined
 
@@ -201,5 +204,36 @@ describe('initial D1 migration', () => {
     expect(schema).not.toMatch(/\braw_payload\b/i)
     expect(schema).not.toMatch(/\br2\b/i)
     expect(schema).not.toMatch(/\bcv\b/i)
+  })
+
+  it('extends the schema for canonical jobs and field provenance', () => {
+    const db = migratedDatabase()
+    db.exec(
+      readFileSync(canonicalMigrationPath, 'utf8').replaceAll(
+        '--> statement-breakpoint',
+        '',
+      ),
+    )
+    const tables = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+      )
+      .all()
+      .map((row) => row.name)
+    expect(tables).toContain('job_tags')
+    expect(tables).toContain('job_field_provenance')
+    expect(
+      db
+        .prepare("SELECT name FROM pragma_table_info('jobs')")
+        .all()
+        .map((row) => row.name),
+    ).toEqual(expect.arrayContaining(['slug', 'remote_scope', 'published_at']))
+    expect(
+      db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'jobs_slug_uidx'",
+        )
+        .get(),
+    ).toEqual({ name: 'jobs_slug_uidx' })
   })
 })

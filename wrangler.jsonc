@@ -1,10 +1,14 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "remotelens",
+  "account_id": "d06a8c795d2fd2c7718ed48c534dc2ba",
   "main": "src/server.ts",
   "compatibility_date": "2026-07-29",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "assets": {
+    "run_worker_first": ["/*", "!/assets/*"],
+  },
   "observability": {
     "enabled": true,
   },
@@ -26,7 +30,7 @@
     {
       "binding": "DB",
       "database_name": "remotelens-catalog",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "64a296b6-d6d0-4e11-8b3a-4145018c03c4",
       "migrations_dir": "drizzle/migrations",
     },
   ],
@@ -36,6 +40,16 @@
       "name": "remotelens-catalog-ingestion",
       "class_name": "CatalogIngestionWorkflow",
       "schedules": ["0 */12 * * *"],
+    },
+  ],
+  "ratelimits": [
+    {
+      "name": "API_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 120,
+        "period": 60,
+      },
     },
   ],
 }

@@ -1,6 +1,11 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const port = 4173
+const port = Number(process.env.REMOTELENS_E2E_PORT ?? 4173)
+const baseURL =
+  process.env.REMOTELENS_E2E_BASE_URL ?? `http://127.0.0.1:${port}`
+const externalServer = process.env.REMOTELENS_E2E_EXTERNAL === '1'
+const workersIp = process.env.REMOTELENS_E2E_WORKERS_IP
+const externalHostname = new URL(baseURL).hostname
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -9,17 +14,31 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: `http://127.0.0.1:${port}`,
+    baseURL,
+    ...(workersIp
+      ? {
+          launchOptions: {
+            args: [
+              '--no-proxy-server',
+              `--host-resolver-rules=MAP ${externalHostname} ${workersIp}`,
+            ],
+          },
+        }
+      : {}),
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     video: 'retain-on-failure',
   },
-  webServer: {
-    command: `pnpm preview --host 127.0.0.1 --port ${port}`,
-    port,
-    reuseExistingServer: false,
-    timeout: 120_000,
-  },
+  ...(externalServer
+    ? {}
+    : {
+        webServer: {
+          command: `pnpm preview --host 127.0.0.1 --port ${port}`,
+          port,
+          reuseExistingServer: false,
+          timeout: 120_000,
+        },
+      }),
   projects: [
     {
       name: 'desktop-chromium',

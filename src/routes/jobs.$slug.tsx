@@ -2,26 +2,39 @@ import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import { ProvenanceRail } from '~/components/provenance-rail'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import { JOB_FIXTURES } from '~/data/job-fixtures'
+import { loadWebsiteJob } from '~/catalog/server-functions'
 import { DEFAULT_JOB_SEARCH } from '~/lib/job-search'
 
 export const Route = createFileRoute('/jobs/$slug')({
-  loader: ({ params }) => {
-    const job = JOB_FIXTURES.find((candidate) => candidate.slug === params.slug)
+  loader: async ({ params }) => {
+    const result = await loadWebsiteJob({ data: { identifier: params.slug } })
+    if (result.unavailable) return result
+    const job = result.job
     // TanStack Router uses a typed redirect-like value for route-level 404s.
     // eslint-disable-next-line @typescript-eslint/only-throw-error
     if (!job) throw notFound()
-    return job
+    return result
   },
   head: ({ loaderData }) => ({
-    meta: loaderData
+    meta: loaderData?.job
       ? [
           {
-            title: `${loaderData.title} at ${loaderData.company} — RemoteLens`,
+            title: `${loaderData.job.title} at ${loaderData.job.company} — RemoteLens`,
           },
           {
             name: 'description',
-            content: `${loaderData.locationSummary}. View attributed source evidence and normalized job fields.`,
+            content: `${loaderData.job.locationSummary}. View attributed source evidence and normalized job fields.`,
+          },
+          ...(loaderData.job.status === 'active'
+            ? []
+            : [{ name: 'robots', content: 'noindex,follow' }]),
+        ]
+      : [],
+    links: loaderData?.job
+      ? [
+          {
+            href: `/jobs/${loaderData.job.slug}`,
+            rel: 'canonical',
           },
         ]
       : [],
@@ -30,7 +43,27 @@ export const Route = createFileRoute('/jobs/$slug')({
 })
 
 function JobDetailPage() {
-  const job = Route.useLoaderData()
+  const result = Route.useLoaderData()
+  if (result.unavailable) {
+    return (
+      <main className="narrow-shell py-24" id="main-content" tabIndex={-1}>
+        <p className="eyebrow">Catalog unavailable</p>
+        <h1 className="mt-4">This job cannot be checked right now.</h1>
+        <p className="lede mt-8">
+          The live catalog did not respond. Try again shortly; RemoteLens will
+          not invent a job record or source destination.
+        </p>
+        <a
+          className="text-pine mt-8 inline-flex min-h-11 items-center font-semibold underline-offset-4 hover:underline"
+          href="/jobs"
+        >
+          Return to the structured index
+        </a>
+      </main>
+    )
+  }
+  const job = result.job
+  if (!job) return null
   const primarySource = job.sources[0]
 
   return (
@@ -56,11 +89,11 @@ function JobDetailPage() {
               </div>
               <div>
                 <dt>Employment</dt>
-                <dd>{job.employmentType.replace('_', ' ')}</dd>
+                <dd>{job.employmentType?.replace('_', ' ') ?? 'Unknown'}</dd>
               </div>
               <div>
                 <dt>Seniority</dt>
-                <dd>{job.seniority}</dd>
+                <dd>{job.seniority ?? 'Unknown'}</dd>
               </div>
               <div>
                 <dt>Visa sponsorship</dt>
@@ -116,8 +149,9 @@ function JobDetailPage() {
               Sources remain visible.
             </h2>
             <p className="lede">
-              Fixture destinations link to provider home pages. Live ingestion
-              will preserve the original listing URL for every source record.
+              Every destination below is retained from an attributed source
+              record. RemoteLens does not replace conflicting destinations with
+              a guessed canonical URL.
             </p>
             <div className="border-line-strong border-t">
               {job.sources.map((source) => (

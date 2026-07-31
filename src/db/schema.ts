@@ -205,8 +205,83 @@ export const jobs = sqliteTable(
   'jobs',
   {
     id: text('id').primaryKey(),
+    slug: text('slug').notNull(),
     title: text('title').notNull(),
+    normalizedTitle: text('normalized_title').notNull(),
     company: text('company').notNull(),
+    normalizedCompany: text('normalized_company').notNull(),
+    companyDomain: text('company_domain'),
+    companyLogoUrl: text('company_logo_url'),
+    descriptionText: text('description_text').notNull().default(''),
+    descriptionHtmlSanitized: text('description_html_sanitized')
+      .notNull()
+      .default(''),
+    descriptionExcerpt: text('description_excerpt').notNull().default(''),
+    employmentType: text('employment_type', {
+      enum: [
+        'full_time',
+        'part_time',
+        'contract',
+        'temporary',
+        'internship',
+        'freelance',
+      ],
+    }),
+    seniority: text('seniority', {
+      enum: [
+        'entry',
+        'junior',
+        'mid',
+        'senior',
+        'staff',
+        'principal',
+        'lead',
+        'manager',
+      ],
+    }),
+    roleFamily: text('role_family').notNull().default('engineering'),
+    remoteScope: text('remote_scope', {
+      enum: [
+        'worldwide',
+        'countries',
+        'region',
+        'timezone',
+        'hybrid',
+        'unspecified',
+      ],
+    })
+      .notNull()
+      .default('unspecified'),
+    locationSummary: text('location_summary')
+      .notNull()
+      .default('Eligibility not specified by source'),
+    timezoneRequirements: text('timezone_requirements').notNull().default('[]'),
+    eligibleCountries: text('eligible_countries').notNull().default('[]'),
+    excludedCountries: text('excluded_countries').notNull().default('[]'),
+    eligibleRegions: text('eligible_regions').notNull().default('[]'),
+    excludedRegions: text('excluded_regions').notNull().default('[]'),
+    languages: text('languages').notNull().default('[]'),
+    salaryMin: integer('salary_min'),
+    salaryMax: integer('salary_max'),
+    salaryCurrency: text('salary_currency'),
+    salaryPeriod: text('salary_period', { enum: ['hour', 'month', 'year'] }),
+    salaryRaw: text('salary_raw'),
+    visaSponsorship: text('visa_sponsorship', {
+      enum: ['yes', 'no', 'unknown'],
+    })
+      .notNull()
+      .default('unknown'),
+    travelRequired: text('travel_required', {
+      enum: ['yes', 'no', 'unknown'],
+    })
+      .notNull()
+      .default('unknown'),
+    canonicalApplicationUrl: text('canonical_application_url'),
+    publishedAt: integer('published_at', { mode: 'number' }),
+    firstSeenAt: integer('first_seen_at', { mode: 'number' }).notNull(),
+    lastSeenAt: integer('last_seen_at', { mode: 'number' }).notNull(),
+    lastCheckedAt: integer('last_checked_at', { mode: 'number' }).notNull(),
+    deactivatedAt: integer('deactivated_at', { mode: 'number' }),
     status: text('status', {
       enum: ['active', 'stale', 'closed'],
     }).notNull(),
@@ -214,11 +289,57 @@ export const jobs = sqliteTable(
     updatedAt: integer('updated_at', { mode: 'number' }).notNull(),
   },
   (table) => [
+    uniqueIndex('jobs_slug_uidx').on(table.slug),
+    index('jobs_normalized_company_idx').on(table.normalizedCompany),
+    index('jobs_remote_scope_status_idx').on(table.remoteScope, table.status),
+    index('jobs_published_idx').on(table.publishedAt),
     index('jobs_status_updated_idx').on(table.status, table.updatedAt),
     check(
       'jobs_status_check',
       sql`${table.status} in ('active','stale','closed')`,
     ),
+  ],
+)
+
+export const jobTags = sqliteTable(
+  'job_tags',
+  {
+    jobId: text('job_id')
+      .notNull()
+      .references(() => jobs.id, { onDelete: 'cascade' }),
+    normalized: text('normalized').notNull(),
+    sourceValue: text('source_value').notNull(),
+    filterable: integer('filterable', { mode: 'boolean' }).notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.jobId, table.normalized],
+      name: 'job_tags_pk',
+    }),
+    index('job_tags_normalized_idx').on(table.normalized, table.filterable),
+  ],
+)
+
+export const jobFieldProvenance = sqliteTable(
+  'job_field_provenance',
+  {
+    id: text('id').primaryKey(),
+    jobId: text('job_id')
+      .notNull()
+      .references(() => jobs.id, { onDelete: 'cascade' }),
+    sourceRecordId: text('source_record_id')
+      .notNull()
+      .references(() => sourceRecords.id, { onDelete: 'restrict' }),
+    field: text('field').notNull(),
+    origin: text('origin', {
+      enum: ['source-stated', 'parsed', 'normalized'],
+    }).notNull(),
+    value: text('value').notNull(),
+    createdAt: integer('created_at', { mode: 'number' }).notNull(),
+  },
+  (table) => [
+    index('job_field_provenance_job_field_idx').on(table.jobId, table.field),
+    index('job_field_provenance_source_idx').on(table.sourceRecordId),
   ],
 )
 

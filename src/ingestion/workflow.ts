@@ -32,7 +32,7 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
     const claim = await step.do('claim ingestion cycle', async () => {
       const now = Date.now()
       const cycleKey =
-        event.payload.cycleKey ??
+        event.payload?.cycleKey ??
         new Date(event.timestamp).toISOString().slice(0, 13)
       return claimCycle(this.env.DB, {
         cycleKey,
@@ -163,6 +163,18 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
         cacheEpochBefore: claim.cacheEpochBefore,
         cycleId: claim.cycleId,
         now: Date.now(),
+        semantic: {
+          apiKey: (this.env as Cloudflare.Env & { DEEPSEEK_API_KEY?: string })
+            .DEEPSEEK_API_KEY,
+          baseUrl: (
+            this.env as Cloudflare.Env & { DEEPSEEK_API_BASE_URL?: string }
+          ).DEEPSEEK_API_BASE_URL,
+          model:
+            (this.env as Cloudflare.Env & { DEEPSEEK_API_MODEL?: string })
+              .DEEPSEEK_API_MODEL ?? environment.DEEPSEEK_MODEL,
+          retryCount: environment.DEEPSEEK_SCHEMA_RETRY_COUNT,
+        },
+        semanticMaxPerRun: environment.SEMANTIC_DEDUPE_MAX_PER_RUN,
         providerRuns: [remoteOk, wwr] as ProviderRunSummary[],
       }),
     )

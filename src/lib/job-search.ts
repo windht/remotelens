@@ -1,6 +1,7 @@
 import { ISO_COUNTRY_CODES } from './countries'
 
 export const SOURCE_KEYS = ['remote_ok', 'wwr'] as const
+export const ROLE_FAMILIES = ['engineering'] as const
 export const EMPLOYMENT_TYPES = [
   'full_time',
   'part_time',
@@ -39,6 +40,7 @@ export type JobSearch = {
   country?: string
   employment_type?: (typeof EMPLOYMENT_TYPES)[number]
   error?: InvalidFilter
+  role_family: (typeof ROLE_FAMILIES)[number]
   remote_scope?: (typeof REMOTE_SCOPES)[number]
   seniority?: (typeof SENIORITIES)[number]
   sort: 'recently_discovered' | 'newest_published'
@@ -47,12 +49,15 @@ export type JobSearch = {
   tag?: string
 }
 
-export const DEFAULT_JOB_SEARCH: Pick<JobSearch, 'sort' | 'source' | 'status'> =
-  {
-    sort: 'recently_discovered',
-    source: [],
-    status: 'active',
-  }
+export const DEFAULT_JOB_SEARCH: Pick<
+  JobSearch,
+  'role_family' | 'sort' | 'source' | 'status'
+> = {
+  role_family: 'engineering',
+  sort: 'recently_discovered',
+  source: [],
+  status: 'active',
+}
 
 function firstValue(value: unknown): string | undefined {
   if (typeof value === 'string') return value
@@ -81,6 +86,7 @@ export function parseJobSearch(input: Record<string, unknown>): JobSearch {
   const sourceValues = values(input.source)
   const employmentType = firstValue(input.employment_type)
   const remoteScope = firstValue(input.remote_scope)
+  const roleFamily = firstValue(input.role_family) ?? 'engineering'
   const seniority = firstValue(input.seniority)
   const status = firstValue(input.status) ?? 'active'
   const sort = firstValue(input.sort) ?? 'recently_discovered'
@@ -113,6 +119,14 @@ export function parseJobSearch(input: Record<string, unknown>): JobSearch {
       code: 'invalid_filter',
       field: 'employment_type',
       message: 'Employment type is not part of the V1 taxonomy.',
+    }
+  } else if (
+    !ROLE_FAMILIES.includes(roleFamily as (typeof ROLE_FAMILIES)[number])
+  ) {
+    error = {
+      code: 'invalid_filter',
+      field: 'role_family',
+      message: 'Role family is not part of the V1 taxonomy.',
     }
   } else if (
     remoteScope &&
@@ -162,6 +176,11 @@ export function parseJobSearch(input: Record<string, unknown>): JobSearch {
     REMOTE_SCOPES.includes(remoteScope as (typeof REMOTE_SCOPES)[number])
       ? { remote_scope: remoteScope as (typeof REMOTE_SCOPES)[number] }
       : {}),
+    role_family: ROLE_FAMILIES.includes(
+      roleFamily as (typeof ROLE_FAMILIES)[number],
+    )
+      ? (roleFamily as (typeof ROLE_FAMILIES)[number])
+      : 'engineering',
     ...(seniority &&
     SENIORITIES.includes(seniority as (typeof SENIORITIES)[number])
       ? { seniority: seniority as (typeof SENIORITIES)[number] }

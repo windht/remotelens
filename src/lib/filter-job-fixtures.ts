@@ -21,6 +21,7 @@ export function filterJobFixtures(jobs: JobFixture[], search: JobSearch) {
 
   const filtered = jobs.filter((job) => {
     if (search.status === 'active' && job.status !== 'active') return false
+    if (search.sort === 'newest_published' && !job.publishedAt) return false
     if (
       search.company &&
       normalizeCompany(job.company) !== normalizeCompany(search.company)
@@ -56,6 +57,8 @@ export function filterJobFixtures(jobs: JobFixture[], search: JobSearch) {
   return filtered.toSorted((a, b) => {
     const field =
       search.sort === 'newest_published' ? 'publishedAt' : 'firstSeenAt'
-    return b[field].localeCompare(a[field]) || a.id.localeCompare(b.id)
+    return (
+      (b[field] ?? '').localeCompare(a[field] ?? '') || a.id.localeCompare(b.id)
+    )
   })
 }
