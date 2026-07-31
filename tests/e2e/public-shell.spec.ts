@@ -27,7 +27,10 @@ test.describe('public shell', () => {
     const response = await page.goto('/')
     expect(response?.headers()['x-content-type-options']).toBe('nosniff')
     expect(response?.headers()['x-frame-options']).toBe('DENY')
-    expect(response?.headers()['cache-control']).toBe('no-store')
+    expect(response?.headers()['cache-control']).toBe(
+      'public, max-age=0, s-maxage=300, stale-while-revalidate=3600',
+    )
+    expect(response?.headers()['x-remotelens-render-mode']).toBe('isr')
     expect(response?.headers()['content-security-policy']).toContain(
       "frame-ancestors 'none'",
     )
@@ -52,6 +55,56 @@ test.describe('public shell', () => {
     ).toBeVisible()
   })
 
+  test('applies explicit ISR policies to every indexable page class', async ({
+    request,
+  }) => {
+    const dynamicRoutes = [
+      '/',
+      '/jobs',
+      '/jobs?role_family=backend&sort=recently_discovered',
+      '/jobs/senior-backend-engineer-kumo-01JRLKUM0F6T',
+    ]
+    for (const route of dynamicRoutes) {
+      const response = await request.get(route)
+      expect(response.status(), `${route} should load`).toBe(200)
+      expect(response.headers()['cache-control']).toBe(
+        'public, max-age=0, s-maxage=300, stale-while-revalidate=3600',
+      )
+      expect(response.headers()['cdn-cache-control']).toBe(
+        'public, max-age=300, stale-while-revalidate=3600',
+      )
+      expect(response.headers()['x-remotelens-render-mode']).toBe('isr')
+      const html = await response.text()
+      expect(html).toContain('main-content')
+      if (route.includes('/jobs/senior-backend-engineer')) {
+        expect(html).toContain('Senior Backend Engineer')
+        expect(html).toContain('Kumo Systems')
+        expect(html).toContain(
+          'Build and operate dependable product infrastructure',
+        )
+        expect(html).toContain('https://jsgurujobs.com/jobs/551')
+      }
+    }
+
+    for (const route of ['/about', '/api', '/privacy', '/skills/install']) {
+      const response = await request.get(route)
+      expect(response.status(), `${route} should load`).toBe(200)
+      expect(response.headers()['cache-control']).toBe(
+        'public, max-age=0, s-maxage=86400, stale-while-revalidate=604800',
+      )
+      expect(response.headers()['cdn-cache-control']).toBe(
+        'public, max-age=86400, stale-while-revalidate=604800',
+      )
+      expect(response.headers()['x-remotelens-render-mode']).toBe('isr')
+      expect(await response.text()).toContain('main-content')
+    }
+
+    const missingJob = await request.get('/jobs/not-a-real-job')
+    expect(missingJob.status()).toBe(404)
+    expect(missingJob.headers()['cache-control']).toBe('no-store')
+    expect(missingJob.headers()['x-remotelens-render-mode']).toBe('ssr')
+  })
+
   test('home actions preserve the public and local-CV boundary', async ({
     page,
   }) => {
@@ -68,6 +121,82 @@ test.describe('public shell', () => {
     await page.getByRole('link', { name: 'API documentation' }).click()
     await expect(page).toHaveURL(/\/api/)
     await expect(page.getByText('Live contract')).toBeVisible()
+  })
+
+  test('publishes search identity, hierarchy, and favicon assets', async ({
+    page,
+    request,
+  }) => {
+    const assets = [
+      ['/favicon.ico', 'image/'],
+      ['/favicon.svg', 'image/svg+xml'],
+      ['/favicon-16x16.png', 'image/png'],
+      ['/favicon-32x32.png', 'image/png'],
+      ['/apple-touch-icon.png', 'image/png'],
+      ['/icon-192.png', 'image/png'],
+      ['/icon-512.png', 'image/png'],
+      ['/icon-maskable-512.png', 'image/png'],
+      ['/site.webmanifest', 'application/manifest+json'],
+    ] as const
+    for (const [path, contentType] of assets) {
+      const response = await request.get(path)
+      expect(response.status(), `${path} should load`).toBe(200)
+      expect(response.headers()['content-type']).toContain(contentType)
+    }
+
+    const manifestText = await (await request.get('/site.webmanifest')).text()
+    const manifest = JSON.parse(manifestText) as unknown
+    expect(manifest).toMatchObject({
+      name: 'RemoteLens',
+      icons: [
+        { src: '/icon-192.png', sizes: '192x192' },
+        { src: '/icon-512.png', sizes: '512x512' },
+        { src: '/icon-maskable-512.png', purpose: 'maskable' },
+      ],
+    })
+
+    await page.goto('/')
+    await expect(page.locator('head link[rel="icon"]')).toHaveCount(4)
+    await expect(page.locator('head link[rel="manifest"]')).toHaveAttribute(
+      'href',
+      '/site.webmanifest',
+    )
+    await expect(
+      page.locator('head meta[property="og:site_name"]'),
+    ).toHaveAttribute('content', 'RemoteLens')
+    const homeStructuredData = await page
+      .locator('head script[type="application/ld+json"]')
+      .allTextContents()
+    expect(
+      homeStructuredData
+        .map((value) => JSON.parse(value) as { '@graph'?: unknown[] })
+        .some((value) => Array.isArray(value['@graph'])),
+    ).toBe(true)
+
+    for (const route of [
+      '/jobs',
+      '/skills/install',
+      '/api',
+      '/about',
+      '/privacy',
+    ]) {
+      await page.goto(route)
+      const canonical = page.locator('head link[rel="canonical"]')
+      await expect(canonical).toHaveCount(1)
+      await expect(canonical).toHaveAttribute(
+        'href',
+        `https://remotelens.co${route}`,
+      )
+      await expect(page.locator('head meta[name="description"]')).toHaveCount(1)
+      const structuredData = await page
+        .locator('head script[type="application/ld+json"]')
+        .allTextContents()
+      expect(
+        structuredData
+          .map((value) => JSON.parse(value) as { '@type'?: string })
+          .some((value) => value['@type'] === 'BreadcrumbList'),
+      ).toBe(true)
+    }
   })
 
   test('shows exact empty and malformed-filter states', async ({ page }) => {

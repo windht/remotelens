@@ -302,6 +302,63 @@ are complete.
     evidence and confirm process cleanup.
   - Acceptance: `ACC-OPS-010`
 
+## Phase 11 — Search discovery sitemap
+
+- [x] **P11-001 — Serve a canonical production sitemap**
+  - Add a dynamic `/sitemap.xml` response containing the indexable static pages
+    and every active canonical job backed by an enabled provider.
+  - Exclude redirects, API endpoints, feeds, filtered result URLs, and
+    unavailable jobs.
+  - Acceptance: `ACC-SEO-001`, `ACC-SEO-002`
+- [x] **P11-002 — Preserve crawler access and provide a robots fallback**
+  - Serve `/robots.txt` with the canonical production sitemap location where
+    Cloudflare does not replace the response, and verify that the
+    Cloudflare-managed apex policy explicitly permits search indexing.
+  - Acceptance: `ACC-SEO-003`
+- [x] **P11-003 — Validate and deploy the sitemap release**
+  - Run focused tests, full validation, production dry run, pending production
+    migration review/application, production deployment, and live canonical
+    domain verification.
+  - Acceptance: `ACC-OPS-011`
+
+## Phase 12 — Search identity and favicon delivery
+
+- [x] **P12-001 — Align search-result identity and hierarchy signals**
+  - Add consistent site-name metadata, absolute canonicals, unique page titles
+    and descriptions, Open Graph metadata, WebSite/Organization identity, and
+    breadcrumb structured data without creating artificial pages.
+  - Keep primary subpages discoverable through stable descriptive internal
+    links.
+  - Acceptance: `ACC-SEO-004`
+- [x] **P12-002 — Deliver a complete RemoteLens favicon system**
+  - Preserve the approved lens/crosshair brand geometry and export SVG, ICO,
+    16/32 PNG, Apple touch, 192/512 PWA, and maskable assets with a valid web
+    manifest.
+  - Acceptance: `ACC-SEO-005`
+- [x] **P12-003 — Validate and deploy the search-identity release**
+  - Run icon validation, focused SEO tests, full repository validation,
+    production dry run/deploy, and live metadata/favicon verification.
+  - Acceptance: `ACC-OPS-012`
+
+## Phase 13 — Explicit SSR and ISR delivery
+
+- [x] **P13-001 — Make server rendering the explicit site-wide default**
+  - Configure TanStack Router to server-render every route unless a route
+    explicitly opts out; retain SSR for uncached errors and unavailable-catalog
+    responses.
+  - Acceptance: `ACC-RENDER-001`
+- [x] **P13-002 — Add bounded ISR policies to public HTML pages**
+  - Apply short-lived CDN revalidation to the home, Index, and job-detail
+    pages, including stale-while-revalidate; apply a longer policy to stable
+    About, API, Privacy, and Agent Skill pages.
+  - Do not let the server entry overwrite route-owned cache policies.
+  - Acceptance: `ACC-RENDER-002`, `ACC-RENDER-003`
+- [x] **P13-003 — Validate and deploy the rendering release**
+  - Run focused rendering tests, the full validation and browser suites,
+    production dry run/deploy, and live HTML/header/content verification for
+    every public page class and a sitemap-listed job.
+  - Acceptance: `ACC-OPS-013`
+
 ## Operator-directed Cloudflare setup
 
 - [x] **OPS-001 — Bind the project to the Hutong531 Cloudflare account and

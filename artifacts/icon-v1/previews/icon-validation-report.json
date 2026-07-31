@@ -1,0 +1,18 @@
+{
+  "canvas": [1024, 1024],
+  "alpha_bbox": [128, 128, 896, 896],
+  "optical_center_offset_px": [0.0, 0.0],
+  "centering_within_tolerance": true,
+  "geometry_identical": true,
+  "black_is_true_single_color": true,
+  "white_is_true_single_color": true,
+  "color_foreground_color_count": 77,
+  "color_count_within_limit": false,
+  "transparent_corners": true,
+  "preview_sizes": [16, 24, 32, 48, 64, 128, 256, 512],
+  "backgrounds": ["white", "black", "mid-gray", "interface"],
+  "maskable_visible": true,
+  "maskable_foreground_bbox": [107, 107, 404, 404],
+  "maskable_safe_zone": true,
+  "passed": false
+}

@@ -2,24 +2,21 @@ import handler, { createServerEntry } from '@tanstack/react-start/server-entry'
 import { env } from 'cloudflare:workers'
 import { handlePublicApiRequest } from '~/api/handler'
 import { isAllowedPublicMethod, withSecurityHeaders } from '~/lib/http-security'
+import { withWebsiteRenderingHeaders } from '~/lib/rendering'
+import { handleSearchDiscoveryRequest } from '~/lib/search-discovery'
 
 export { CatalogIngestionWorkflow } from '~/ingestion/workflow'
 
-function withWebsiteCacheHeaders(response: Response) {
-  if (!response.headers.get('Content-Type')?.includes('text/html')) {
-    return response
-  }
-  const headers = new Headers(response.headers)
-  headers.set('Cache-Control', 'no-store')
-  return new Response(response.body, {
-    headers,
-    status: response.status,
-    statusText: response.statusText,
-  })
-}
-
 export default createServerEntry({
   async fetch(request) {
+    const searchDiscoveryResponse = await handleSearchDiscoveryRequest(
+      request,
+      env,
+    )
+    if (searchDiscoveryResponse) {
+      return withSecurityHeaders(searchDiscoveryResponse)
+    }
+
     const publicApiResponse = await handlePublicApiRequest(request, env)
     if (publicApiResponse) return withSecurityHeaders(publicApiResponse)
 
@@ -50,7 +47,7 @@ export default createServerEntry({
     }
 
     return withSecurityHeaders(
-      withWebsiteCacheHeaders(await handler.fetch(request)),
+      withWebsiteRenderingHeaders(await handler.fetch(request)),
     )
   },
 })

@@ -2655,3 +2655,375 @@ credentials are required.
   `pnpm test:e2e` passed 18 cases with 10 documented environment-gated skips.
   Live fetch, local D1 migration, Cloudflare type generation, both deployment
   dry-runs, final formatting, diff hygiene, and process cleanup also passed.
+
+## Search discovery
+
+### ACC-SEO-001 — Sitemap exposes canonical indexable pages
+
+**Priority:** Critical<br>
+**Automation:** Vitest and live HTTP verification<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The application has a D1 catalog containing active jobs.
+- At least one source provider is enabled.
+
+**Steps**
+
+1. Request `/sitemap.xml`.
+2. Parse the response as XML.
+3. Inspect the static and job-detail locations.
+
+**Expected result**
+
+- The response is HTTP 200 with an XML content type.
+- All locations use the `https://remotelens.co` origin.
+- The sitemap includes `/`, `/jobs`, `/api`, `/skills/install`, `/about`, and
+  `/privacy`.
+- Active job-detail locations are present with valid `lastmod` values.
+- Every location is unique and XML-safe.
+
+**Evidence**
+
+- Sitemap unit tests and production HTTP response.
+
+**Last result**
+
+- Passed 2026-08-01. The production response was valid XML with 175 unique
+  canonical locations: six static pages and 169 active job-detail pages. Every
+  job location had a valid `lastmod`; `/jobs` returned HTTP 200 with a matching
+  canonical tag.
+
+### ACC-SEO-002 — Sitemap excludes non-indexable URLs
+
+**Priority:** Critical<br>
+**Automation:** Vitest and live HTTP verification<br>
+**Status:** Passed
+
+**Steps**
+
+1. Request `/sitemap.xml`.
+2. Search the locations for redirects, API data endpoints, feeds, query
+   strings, and inactive or provider-disabled jobs.
+
+**Expected result**
+
+- `/methodology` and `/sources` are absent because they redirect.
+- `/api/v1/*`, `/feeds/*`, and filtered `/jobs?...` URLs are absent.
+- Closed, stale, and provider-disabled jobs are absent.
+
+**Evidence**
+
+- Sitemap query/unit tests and production HTTP response.
+
+**Last result**
+
+- Passed 2026-08-01. The production sitemap contained no redirect routes,
+  `/api/v1` endpoints, feeds, query strings, foreign origins, duplicate
+  locations, or inactive/provider-disabled jobs.
+
+### ACC-SEO-003 — Crawler policy permits search discovery
+
+**Priority:** High<br>
+**Automation:** Vitest and live HTTP verification<br>
+**Status:** Passed
+
+**Steps**
+
+1. Request `/robots.txt`.
+2. Inspect the canonical-domain crawl rules.
+3. Request the Worker fallback and inspect its sitemap directive.
+
+**Expected result**
+
+- The canonical response is HTTP 200 and explicitly permits search indexing.
+- Googlebot is not disallowed.
+- Where Cloudflare does not replace the Worker response, the sitemap directive
+  is exactly
+  `Sitemap: https://remotelens.co/sitemap.xml`.
+
+**Evidence**
+
+- Robots unit tests and production HTTP response.
+
+**Last result**
+
+- Passed 2026-08-01 with a documented edge distinction. The Worker fallback
+  returns `User-agent: *`, `Allow: /`, and the canonical sitemap directive.
+  On `remotelens.co`, Cloudflare Managed Content replaces the Worker body with
+  `Content-Signal: search=yes` and `Allow: /`, while disallowing named AI
+  training crawlers including `Google-Extended`; it does not disallow Googlebot
+  or prevent direct sitemap submission.
+
+### ACC-OPS-011 — Sitemap production release gate
+
+**Priority:** Critical<br>
+**Automation:** CLI, Vitest, build, Wrangler, and live HTTP verification<br>
+**Status:** Passed
+
+**Expected result**
+
+- Focused sitemap tests and the full repository validation pass.
+- The production migration state is reviewed and any required migration is
+  applied before the current Worker is deployed.
+- Production `/sitemap.xml` and `/robots.txt` pass their acceptance checks on
+  `https://remotelens.co`.
+- Existing home, catalog metadata, and one sitemap-listed job remain healthy.
+
+**Evidence**
+
+- `TASKS.md`, `ACCEPTANCE.md`, `WORKLOG.md`, command output, and production HTTP
+  responses.
+
+**Last result**
+
+- Passed 2026-08-01. `pnpm validate` passed formatting, ESLint, TypeScript, 56
+  Vitest tests, 5 migration assertions, and the production build. Production
+  dry run and diff hygiene passed; `0002_jsguru_provider.sql` was reviewed,
+  applied, and confirmed current. Worker version
+  `0a887ba8-9784-42b7-b038-5b08b0d8e67a` was deployed. Live sitemap XML,
+  canonical Index, one listed job, home, and catalog metadata returned HTTP 200.
+
+### ACC-SEO-004 — Search engines receive consistent site and hierarchy signals
+
+**Priority:** Critical<br>
+**Automation:** Vitest, build inspection, and live HTTP verification<br>
+**Status:** Passed
+
+**Steps**
+
+1. Request the home, Index, Agent Skill, API, About, Privacy, and one active job
+   page.
+2. Inspect titles, descriptions, canonicals, social metadata, robots metadata,
+   structured data, and internal navigation labels.
+3. Parse every JSON-LD block.
+
+**Expected result**
+
+- Every indexable page has one descriptive title, one useful description, and
+  one absolute `https://remotelens.co` canonical.
+- The home page exposes `WebSite` identity with the exact name `RemoteLens` and
+  the associated Organization/logo.
+- Subpages expose valid breadcrumb hierarchy without inventing artificial
+  category pages.
+- Primary internal links use concise labels for Index, Agent Skill, API, About,
+  and Privacy.
+- Active jobs are indexable and inactive jobs remain `noindex,follow`.
+
+**Evidence**
+
+- SEO unit tests, production HTML inspection, and structured-data parse output.
+
+**Last result**
+
+- Passed 2026-08-01. The home, Index, Agent Skill, API, About, Privacy, and one
+  active job returned HTTP 200 with one unique title, one description, one
+  absolute canonical, and parseable structured data. The home exposes
+  `WebSite`/Organization identity for RemoteLens; every tested subpage exposes
+  `BreadcrumbList` hierarchy. Open Graph site/page metadata, crawler directives,
+  and descriptive header/footer links are present.
+
+### ACC-SEO-005 — Browser and crawler favicon assets are complete
+
+**Priority:** Critical<br>
+**Automation:** Deterministic icon validation, build inspection, and live HTTP verification<br>
+**Status:** Passed
+
+**Steps**
+
+1. Inspect the favicon master and validation sheet at 16–512 pixels.
+2. Request favicon SVG/ICO/PNG, Apple touch, PWA, maskable, and manifest assets.
+3. Inspect homepage icon and manifest links.
+
+**Expected result**
+
+- All assets use the approved RemoteLens lens/crosshair geometry.
+- Icon geometry is centered and identical across coordinated variants.
+- The ICO contains browser-compatible sizes including 48 pixels.
+- Every linked asset returns HTTP 200 with the correct content type.
+- The manifest references valid 192, 512, and maskable icons.
+
+**Evidence**
+
+- `artifacts/icon-v1/previews-v2/icon-validation-sheet.png`,
+  `artifacts/icon-v1/previews-v2/icon-validation-report.json`, and production
+  HTTP responses.
+
+**Last result**
+
+- Passed 2026-08-01. Deterministic validation confirmed identical geometry,
+  exact centering, one-color foreground, transparent master corners, true
+  monochrome variants, and a valid maskable safe zone. Production returned the
+  exact local SVG, ICO, 16/32 PNG, Apple touch, 192/512 PWA, maskable, and
+  manifest bytes with correct content types. The ICO contains 16, 24, 32, 48,
+  and 64 pixel frames.
+
+### ACC-OPS-012 — Search identity and favicon production release gate
+
+**Priority:** Critical<br>
+**Automation:** CLI, Vitest, build, Wrangler, and live HTTP verification<br>
+**Status:** Passed
+
+**Expected result**
+
+- Icon validation and focused SEO tests pass.
+- Full repository validation, production dry run, and diff hygiene pass.
+- The deployed home and critical subpages expose the expected metadata and
+  structured data.
+- All favicon/manifest assets return HTTP 200 from the canonical domain.
+
+**Evidence**
+
+- `TASKS.md`, `ACCEPTANCE.md`, `WORKLOG.md`, command output, and production HTTP
+  responses.
+
+**Last result**
+
+- Passed 2026-08-01. `pnpm validate` passed formatting, ESLint, TypeScript, 59
+  Vitest tests, 5 migration assertions, and the production build.
+  `pnpm test:e2e` passed all 20 applicable desktop/mobile cases with 10
+  documented environment-gated skips. Production dry run and diff hygiene
+  passed. Worker version `9779ff80-3ce8-485d-b98b-ebe6981cba2c` was deployed,
+  and live metadata, structured data, favicon links, manifest, and all nine
+  icon assets passed canonical-domain verification.
+
+## Phase 13 — Explicit SSR and ISR delivery
+
+### ACC-RENDER-001 — Every public page is server rendered
+
+**Priority:** Critical<br>
+**Automation:** Vitest, build inspection, Playwright, and live HTTP verification<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The production Worker is deployed with a reachable D1 catalog.
+
+**Steps**
+
+1. Request the home, Index, Agent Skill, API, About, Privacy, and one active
+   job-detail URL with a plain HTTP client.
+2. Inspect each response body without executing JavaScript.
+3. Inspect the router configuration and route rendering options.
+
+**Expected result**
+
+- TanStack Router has an explicit site-wide SSR default.
+- Every response is complete HTML containing the page heading, canonical
+  metadata, and route-specific content before hydration.
+- The active job response contains its real title, company, job facts,
+  description, and source destination in the initial HTML.
+- No public HTML route opts into client-only rendering.
+
+**Evidence**
+
+- Rendering unit tests, Playwright no-JavaScript coverage, built server output,
+  and production HTML responses.
+
+**Last result**
+
+- Passed 2026-08-01. `src/start.ts` explicitly configures `defaultSsr: true`.
+  Plain HTTP responses for every canonical public page contained a complete
+  heading, canonical metadata, and route content. The sitemap-selected
+  production job contained its real title, source-provided job content, and
+  attributed application URL in the initial HTML without client execution.
+
+### ACC-RENDER-002 — Catalog-backed pages use bounded ISR
+
+**Priority:** Critical<br>
+**Automation:** Vitest, Playwright, and live HTTP verification<br>
+**Status:** Passed
+
+**Steps**
+
+1. Request `/`, `/jobs`, a structured filtered `/jobs` URL, and one active
+   `/jobs/:slug` URL.
+2. Inspect the response cache headers and initial HTML.
+3. Exercise an unavailable-catalog response in deterministic tests.
+
+**Expected result**
+
+- Successful catalog-backed HTML uses a public shared-cache policy with a
+  five-minute CDN freshness window and one-hour stale-while-revalidate window.
+- Browser freshness remains zero so clients revalidate rather than retaining
+  silently stale job data.
+- Filtered Index URLs are independently keyed by their complete URL.
+- Unavailable-catalog and uncategorized HTML responses remain `no-store` SSR
+  and are not cached as successful pages.
+
+**Evidence**
+
+- Rendering unit tests, public-shell Playwright coverage, and production
+  response headers.
+
+**Last result**
+
+- Passed 2026-08-01. Home, canonical Index, filtered Index, and a
+  sitemap-selected job returned
+  `public, max-age=0, s-maxage=300, stale-while-revalidate=3600`, the matching
+  CDN policy, and `X-RemoteLens-Render-Mode: isr`. A missing job returned HTTP
+  404 with `Cache-Control: no-store` and the explicit SSR marker.
+
+### ACC-RENDER-003 — Stable public pages use long-lived ISR
+
+**Priority:** High<br>
+**Automation:** Vitest, Playwright, and live HTTP verification<br>
+**Status:** Passed
+
+**Steps**
+
+1. Request `/about`, `/api`, `/privacy`, and `/skills/install`.
+2. Inspect their cache headers and initial HTML.
+
+**Expected result**
+
+- Each response is server-rendered HTML.
+- Each response uses a public shared-cache policy with a one-day CDN freshness
+  window and seven-day stale-while-revalidate window.
+- Security headers and route metadata remain present.
+
+**Evidence**
+
+- Rendering unit tests, public-shell Playwright coverage, and production
+  response headers.
+
+**Last result**
+
+- Passed 2026-08-01. About, API, Privacy, and Agent Skill returned complete
+  server-rendered HTML with
+  `public, max-age=0, s-maxage=86400, stale-while-revalidate=604800`, the
+  matching CDN policy, the ISR marker, security headers, and canonical
+  metadata.
+
+### ACC-OPS-013 — SSR and ISR production release gate
+
+**Priority:** Critical<br>
+**Automation:** CLI, Vitest, build, Playwright, Wrangler, and live HTTP verification<br>
+**Status:** Passed
+
+**Expected result**
+
+- Focused rendering tests, full repository validation, full applicable
+  Playwright coverage, production dry run, and diff hygiene pass.
+- Production D1 migration state is current.
+- The deployed canonical domain passes all Phase 13 HTML and header checks.
+- Existing sitemap, favicon, API, redirect, and security behavior remains
+  healthy.
+
+**Evidence**
+
+- `TASKS.md`, `ACCEPTANCE.md`, `WORKLOG.md`, command output, and production HTTP
+  responses.
+
+**Last result**
+
+- Passed 2026-08-01. `pnpm validate` passed formatting, ESLint, TypeScript, 64
+  Vitest tests, 5 migration assertions, and the production build. The full
+  Playwright run passed all 22 applicable desktop/mobile cases with 10
+  environment-gated skips. Production dry run, remote migration readback, and
+  diff hygiene passed. Worker version
+  `e9f6dac1-bcb9-48db-9a39-755d1c42ddc2` was deployed. Three repeated
+  canonical-domain and workers.dev header probes passed after edge propagation;
+  final SSR content, ISR headers, missing-job SSR, redirects, API, sitemap, and
+  favicon regression checks passed.

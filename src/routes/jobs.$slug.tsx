@@ -4,6 +4,13 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { loadWebsiteJob } from '~/catalog/server-functions'
 import { DEFAULT_JOB_SEARCH } from '~/lib/job-search'
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLdScript,
+  pageMeta,
+} from '~/lib/seo'
+import { catalogIsrHeaders, uncachedSsrHeaders } from '~/lib/rendering'
 
 export const Route = createFileRoute('/jobs/$slug')({
   loader: async ({ params }) => {
@@ -15,27 +22,45 @@ export const Route = createFileRoute('/jobs/$slug')({
     if (!job) throw notFound()
     return result
   },
+  headers: ({ loaderData }) =>
+    loaderData?.unavailable ? uncachedSsrHeaders() : catalogIsrHeaders(),
   head: ({ loaderData }) => ({
     meta: loaderData?.job
       ? [
-          {
+          ...pageMeta({
             title: `${loaderData.job.title} at ${loaderData.job.company} — RemoteLens`,
-          },
+            description: `${loaderData.job.locationSummary}. View attributed source evidence and normalized job fields.`,
+            path: `/jobs/${loaderData.job.slug}`,
+          }),
           {
-            name: 'description',
-            content: `${loaderData.job.locationSummary}. View attributed source evidence and normalized job fields.`,
+            name: 'robots',
+            content:
+              loaderData.job.status === 'active'
+                ? 'index,follow,max-image-preview:large,max-snippet:-1'
+                : 'noindex,follow',
           },
-          ...(loaderData.job.status === 'active'
-            ? []
-            : [{ name: 'robots', content: 'noindex,follow' }]),
         ]
       : [],
     links: loaderData?.job
       ? [
           {
-            href: `/jobs/${loaderData.job.slug}`,
+            href: absoluteUrl(`/jobs/${loaderData.job.slug}`),
             rel: 'canonical',
           },
+        ]
+      : [],
+    scripts: loaderData?.job
+      ? [
+          jsonLdScript(
+            breadcrumbJsonLd([
+              { name: 'RemoteLens', path: '/' },
+              { name: 'Remote Developer Jobs', path: '/jobs' },
+              {
+                name: loaderData.job.title,
+                path: `/jobs/${loaderData.job.slug}`,
+              },
+            ]),
+          ),
         ]
       : [],
   }),

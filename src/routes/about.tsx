@@ -1,9 +1,31 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageIntro } from '~/components/page-intro'
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLdScript,
+  pageMeta,
+} from '~/lib/seo'
+import { stablePageIsrHeaders } from '~/lib/rendering'
 
 export const Route = createFileRoute('/about')({
+  headers: stablePageIsrHeaders,
   head: () => ({
-    meta: [{ title: 'About — RemoteLens' }],
+    meta: pageMeta({
+      title: 'About RemoteLens',
+      description:
+        'Learn how RemoteLens collects, normalizes, filters, and attributes public remote developer-job data.',
+      path: '/about',
+    }),
+    links: [{ rel: 'canonical', href: absoluteUrl('/about') }],
+    scripts: [
+      jsonLdScript(
+        breadcrumbJsonLd([
+          { name: 'RemoteLens', path: '/' },
+          { name: 'About', path: '/about' },
+        ]),
+      ),
+    ],
   }),
   component: AboutPage,
 })

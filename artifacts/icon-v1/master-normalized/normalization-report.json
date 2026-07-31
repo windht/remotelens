@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "method": "provider-alpha",
+  "input": {
+    "path": "artifacts/icon-v1/master/icon-color.png",
+    "width": 1024,
+    "height": 1024
+  },
+  "output": {
+    "width": 1024,
+    "height": 1024,
+    "padding": 0.125
+  },
+  "fallbackKey": null,
+  "palette": ["#F4F1E8"],
+  "alphaBounds": [128, 128, 896, 896]
+}

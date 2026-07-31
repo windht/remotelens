@@ -3,19 +3,27 @@ import { JobRow, jobRowDataFromFixture } from '~/components/job-row'
 import { Button } from '~/components/ui/button'
 import { loadWebsiteJobs } from '~/catalog/server-functions'
 import { DEFAULT_JOB_SEARCH } from '~/lib/job-search'
+import {
+  absoluteUrl,
+  jsonLdScript,
+  pageMeta,
+  siteIdentityJsonLd,
+} from '~/lib/seo'
+import { catalogIsrHeaders, uncachedSsrHeaders } from '~/lib/rendering'
 
 export const Route = createFileRoute('/')({
   loader: () => loadWebsiteJobs({ data: DEFAULT_JOB_SEARCH }),
+  headers: ({ loaderData }) =>
+    loaderData?.unavailable ? uncachedSsrHeaders() : catalogIsrHeaders(),
   head: () => ({
-    meta: [
-      { title: 'RemoteLens — See which remote jobs actually fit' },
-      {
-        name: 'description',
-        content:
-          'Browse attributed remote developer jobs without ads, promoted listings, login walls, or CV uploads.',
-      },
-    ],
-    links: [{ rel: 'canonical', href: '/' }],
+    meta: pageMeta({
+      title: 'RemoteLens — Remote Developer Jobs with Source Evidence',
+      description:
+        'Browse attributed remote developer jobs with structured filters, source evidence, no ads, and no CV upload.',
+      path: '/',
+    }),
+    links: [{ rel: 'canonical', href: absoluteUrl('/') }],
+    scripts: [jsonLdScript(siteIdentityJsonLd)],
   }),
   component: HomePage,
 })

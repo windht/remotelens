@@ -25,7 +25,33 @@ export const Route = createRootRoute({
       },
       {
         name: 'theme-color',
-        content: '#F7F8F7',
+        content: '#17211D',
+      },
+      {
+        name: 'application-name',
+        content: 'RemoteLens',
+      },
+      {
+        name: 'robots',
+        content:
+          'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1',
+      },
+      {
+        name: 'googlebot',
+        content:
+          'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1',
+      },
+      {
+        property: 'og:site_name',
+        content: 'RemoteLens',
+      },
+      {
+        property: 'og:locale',
+        content: 'en_US',
+      },
+      {
+        name: 'twitter:card',
+        content: 'summary',
       },
       {
         title: 'RemoteLens — Remote jobs with source evidence',
@@ -36,7 +62,29 @@ export const Route = createRootRoute({
           'A clean remote developer-job index for humans and AI agents. No ads, no login, and your CV stays local.',
       },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
+      { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+      {
+        rel: 'icon',
+        href: '/favicon-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+      {
+        rel: 'icon',
+        href: '/favicon-16x16.png',
+        sizes: '16x16',
+        type: 'image/png',
+      },
+      {
+        rel: 'apple-touch-icon',
+        href: '/apple-touch-icon.png',
+        sizes: '180x180',
+      },
+      { rel: 'manifest', href: '/site.webmanifest' },
+    ],
   }),
   notFoundComponent: () => (
     <main className="narrow-shell py-24" id="main-content" tabIndex={-1}>

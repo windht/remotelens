@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { DEFAULT_JOB_SEARCH } from '~/lib/job-search'
 
 export function SiteFooter() {
   return (
@@ -12,14 +13,20 @@ export function SiteFooter() {
           </p>
         </div>
         <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-5">
+          <Link className="footer-link" search={DEFAULT_JOB_SEARCH} to="/jobs">
+            Index
+          </Link>
+          <Link className="footer-link" to="/skills/install">
+            Agent Skill
+          </Link>
+          <Link className="footer-link" to="/api">
+            API
+          </Link>
           <Link className="footer-link" to="/privacy">
             Privacy
           </Link>
           <Link className="footer-link" to="/about">
             About
-          </Link>
-          <Link className="footer-link" to="/api">
-            API
           </Link>
         </nav>
       </div>

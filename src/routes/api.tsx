@@ -1,18 +1,32 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageIntro } from '~/components/page-intro'
 import { Badge } from '~/components/ui/badge'
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLdScript,
+  pageMeta,
+} from '~/lib/seo'
+import { stablePageIsrHeaders } from '~/lib/rendering'
 
 export const Route = createFileRoute('/api')({
+  headers: stablePageIsrHeaders,
   head: () => ({
-    meta: [
-      { title: 'Public API documentation — RemoteLens' },
-      {
-        name: 'description',
-        content:
-          'Use the public read-only RemoteLens JSON API and structured filter contract.',
-      },
+    meta: pageMeta({
+      title: 'Remote Jobs API — RemoteLens',
+      description:
+        'Use the public read-only RemoteLens JSON API for structured remote developer jobs with source evidence.',
+      path: '/api',
+    }),
+    links: [{ rel: 'canonical', href: absoluteUrl('/api') }],
+    scripts: [
+      jsonLdScript(
+        breadcrumbJsonLd([
+          { name: 'RemoteLens', path: '/' },
+          { name: 'Remote Jobs API', path: '/api' },
+        ]),
+      ),
     ],
-    links: [{ rel: 'canonical', href: '/api' }],
   }),
   component: ApiPage,
 })

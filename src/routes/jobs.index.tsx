@@ -1,4 +1,8 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import {
+  Link,
+  createFileRoute,
+  stripSearchParams,
+} from '@tanstack/react-router'
 import { loadWebsiteJobs } from '~/catalog/server-functions'
 import { InfiniteJobLedger } from '~/components/infinite-job-ledger'
 import { jobRowDataFromFixture } from '~/components/job-row'
@@ -19,21 +23,39 @@ import {
   SOURCE_KEYS,
   parseJobSearch,
 } from '~/lib/job-search'
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLdScript,
+  pageMeta,
+} from '~/lib/seo'
+import { catalogIsrHeaders, uncachedSsrHeaders } from '~/lib/rendering'
 
 export const Route = createFileRoute('/jobs/')({
   validateSearch: parseJobSearch,
+  search: {
+    middlewares: [stripSearchParams(DEFAULT_JOB_SEARCH)],
+  },
   loaderDeps: ({ search }) => ({ search }),
   loader: ({ deps }) => loadWebsiteJobs({ data: deps.search }),
+  headers: ({ loaderData }) =>
+    loaderData?.unavailable ? uncachedSsrHeaders() : catalogIsrHeaders(),
   head: () => ({
-    meta: [
-      { title: 'Remote jobs Index — RemoteLens' },
-      {
-        name: 'description',
-        content:
-          'Filter the attributed RemoteLens job Index with exact structured fields.',
-      },
+    meta: pageMeta({
+      title: 'Remote Developer Jobs — RemoteLens',
+      description:
+        'Filter attributed remote developer jobs by eligibility, company, seniority, employment type, salary, and source.',
+      path: '/jobs',
+    }),
+    links: [{ rel: 'canonical', href: absoluteUrl('/jobs') }],
+    scripts: [
+      jsonLdScript(
+        breadcrumbJsonLd([
+          { name: 'RemoteLens', path: '/' },
+          { name: 'Remote Developer Jobs', path: '/jobs' },
+        ]),
+      ),
     ],
-    links: [{ rel: 'canonical', href: '/jobs' }],
   }),
   component: JobsPage,
 })

@@ -1,18 +1,32 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { PageIntro } from '~/components/page-intro'
 import { Badge } from '~/components/ui/badge'
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLdScript,
+  pageMeta,
+} from '~/lib/seo'
+import { stablePageIsrHeaders } from '~/lib/rendering'
 
 export const Route = createFileRoute('/skills/install')({
+  headers: stablePageIsrHeaders,
   head: () => ({
-    meta: [
-      { title: 'Agent Skill installation — RemoteLens' },
-      {
-        name: 'description',
-        content:
-          'Install the repository-owned RemoteLens Agent Skill and compare public job data with a selected local CV.',
-      },
+    meta: pageMeta({
+      title: 'Install the RemoteLens Agent Skill',
+      description:
+        'Install the RemoteLens Agent Skill to compare public remote jobs with a CV that stays on your computer.',
+      path: '/skills/install',
+    }),
+    links: [{ rel: 'canonical', href: absoluteUrl('/skills/install') }],
+    scripts: [
+      jsonLdScript(
+        breadcrumbJsonLd([
+          { name: 'RemoteLens', path: '/' },
+          { name: 'Agent Skill', path: '/skills/install' },
+        ]),
+      ),
     ],
-    links: [{ rel: 'canonical', href: '/skills/install' }],
   }),
   component: SkillInstallPage,
 })

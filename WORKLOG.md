@@ -2,10 +2,145 @@
 
 ## Current status
 
-**Phase:** Phase 9 — Open-source release hygiene<br>
-**Current task:** None — P9-001 through P9-003 are complete<br>
-**Current acceptance:** None — all Phase 9 and Phase 10 acceptance cases passed<br>
+**Phase:** Phase 13 — Explicit SSR and ISR delivery<br>
+**Current task:** None — P13-001 through P13-003 are complete<br>
+**Current acceptance:** None — ACC-RENDER-001 through ACC-RENDER-003 and ACC-OPS-013 passed<br>
 **Goal status:** Complete
+
+### SSR and ISR delivery started — 2026-08-01
+
+- The user requested that every page, especially job details, be delivered
+  through SSR or ISR using TanStack Start's documented ISR model.
+- Repository and live-production inspection confirmed that TanStack Start
+  already server-renders route loaders and complete HTML, but `src/server.ts`
+  overwrites every HTML cache policy with `Cache-Control: no-store`.
+- The linked TanStack guide defines ISR through route-owned standard
+  `Cache-Control` headers, shared-cache freshness, and
+  `stale-while-revalidate`.
+- The implementation target is an explicit site-wide SSR default, five-minute
+  ISR for catalog-backed pages, one-day ISR for stable public pages, and
+  uncached SSR for errors or unavailable catalog responses.
+- Added the TanStack Start global configuration with `defaultSsr: true`; the
+  built hydration payload confirms `ssr: true` for the root and job route.
+- Added shared catalog and stable-page ISR policies plus an uncached SSR
+  fallback. The server entry now preserves route-owned cache headers instead of
+  replacing them with `no-store`.
+- Applied five-minute CDN freshness and one-hour stale-while-revalidate to
+  home, canonical/filtered Index, and job-detail HTML. Applied one-day CDN
+  freshness and seven-day stale-while-revalidate to About, API, Privacy, and
+  Agent Skill.
+- Added explicit `X-RemoteLens-Render-Mode` evidence and kept 404/unavailable
+  HTML at `Cache-Control: no-store`.
+- Added focused Vitest coverage and desktop/mobile HTTP acceptance for the
+  global SSR default, both ISR policy tiers, preservation by the server entry,
+  complete job-detail HTML, and uncached missing-job SSR.
+- `pnpm validate` passed formatting, ESLint, TypeScript, 64/64 Vitest tests,
+  5/5 migration assertions, and the production build.
+- `pnpm test:e2e` passed 22/22 applicable desktop/mobile cases with 10
+  environment-gated live-catalog/production cases skipped as designed.
+- Production Wrangler dry run, remote migration readback, and
+  `git diff --check` passed.
+- Deployed production Worker version
+  `e9f6dac1-bcb9-48db-9a39-755d1c42ddc2`.
+- The first immediate post-deploy request observed mixed old/new edge versions.
+  Three subsequent repeated probes across the canonical and workers.dev
+  domains returned the new ISR policies for every page class.
+- Final canonical-domain verification passed for complete SSR HTML and
+  canonicals on home, Index, filtered Index, About, API, Privacy, Agent Skill,
+  and one sitemap-listed production job. Missing jobs remained uncached SSR;
+  redirects, API metadata, the 175-location sitemap, and favicon remained
+  healthy.
+
+### Search identity and favicon delivery started — 2026-08-01
+
+- The user supplied a Google result with expanded sitelinks as the target
+  search-result pattern, while explicitly retaining RemoteLens's own subpages.
+- Google chooses whether and when to show sitelinks; the implementation target
+  is eligibility through consistent site identity, hierarchy, unique metadata,
+  canonical URLs, structured data, internal labels, crawlability, and sitemap
+  coverage.
+- Live inspection found no favicon, manifest, structured data, Open Graph site
+  identity, or absolute canonical delivery. `/favicon.ico`, `/favicon.svg`, and
+  `/site.webmanifest` returned 404.
+- The existing product lens/crosshair mark is the approved icon direction. One
+  direct GPT Image master-sheet request was rejected because it introduced
+  gradients, shadows, and changed proportions; no second billable image call
+  was made.
+- Deterministic SVG masters and web exports now preserve the approved geometry.
+  The normalized icon validation passed identical geometry, true monochrome
+  variants, centering, transparent corners, palette, and maskable safe-zone
+  checks.
+- Added the complete SVG/ICO/PNG/Apple touch/PWA/maskable asset matrix and web
+  manifest, plus explicit root-level icon links.
+- Corrected both Wrangler asset-routing configurations so root-level favicon
+  and manifest files bypass the Worker and reach Cloudflare's static asset
+  layer. The first browser run caught this as a real 404 before deployment.
+- Added shared SEO helpers for absolute production URLs, consistent page/social
+  metadata, JSON-LD scripts, and breadcrumb hierarchy.
+- Added `WebSite` and Organization identity on the home page, unique titles and
+  descriptions across primary pages, absolute canonicals, breadcrumb data on
+  subpages/jobs, explicit active-job crawler directives, and stable footer
+  links to the real primary pages.
+- Added focused Vitest coverage and desktop/mobile Playwright coverage for
+  identity metadata, JSON-LD parsing, canonicals, favicon files, and manifest
+  contents.
+- `pnpm validate` passed formatting, ESLint, TypeScript, 59/59 Vitest tests, 5/5
+  migration assertions, and the production build.
+- `pnpm test:e2e` passed 20/20 applicable desktop/mobile cases with 10
+  environment-gated live-catalog/production cases skipped as designed.
+- Production Wrangler dry run and `git diff --check` passed.
+- Deployed production Worker version
+  `9779ff80-3ce8-485d-b98b-ebe6981cba2c`.
+- Live home, Index, Agent Skill, API, About, Privacy, and one sitemap-listed job
+  returned HTTP 200 with one title, description, absolute canonical, and
+  parseable expected structured-data type.
+- Live SVG, ICO, 16/32 PNG, Apple touch, 192/512 PWA, maskable, and manifest
+  responses returned HTTP 200 with correct content types and byte-for-byte
+  matches to the local artifacts. The ICO contains 16, 24, 32, 48, and 64 pixel
+  frames.
+- No process remains on the Playwright preview port 4173 after the run.
+
+### Search discovery sitemap started — 2026-08-01
+
+- The user requested a production `sitemap.xml` and will perform the final
+  Google Search Console submission.
+- Production uses `https://remotelens.co` as the canonical site origin.
+- The sitemap scope is the six indexable static HTML routes plus active
+  canonical job-detail pages backed by at least one enabled provider.
+- Redirects, API data endpoints, feeds, filtered result URLs, and inactive jobs
+  are excluded.
+- Production inspection found `0002_jsguru_provider.sql` pending because the
+  completed Phase 10 release is on `main` but has not yet been deployed.
+- Added a D1-backed `/sitemap.xml` response containing six static pages and
+  every active canonical job backed by at least one enabled provider. The
+  query is capped at the sitemap protocol's 50,000-location limit and returns a
+  retryable 503 instead of an incomplete sitemap when D1 is unavailable.
+- Added focused coverage for canonical origin handling, static and job
+  locations, enabled-provider visibility, robots fallback behavior, and the D1
+  failure path.
+- Stripped default job filters from the Index URL so `/jobs` is a direct HTTP
+  200 rather than a redirect to an explicit-default query string; the page
+  canonical and sitemap location both use `/jobs`.
+- `pnpm validate` passed formatting, ESLint, TypeScript, 56/56 Vitest tests, 5/5
+  migration assertions, and the production build.
+- Production Wrangler dry run and `git diff --check` passed.
+- Reviewed and applied `0002_jsguru_provider.sql`; remote migration readback
+  reports no pending migrations.
+- Deployed production Worker version
+  `0a887ba8-9784-42b7-b038-5b08b0d8e67a`.
+- Live `https://remotelens.co/sitemap.xml` returned HTTP 200 with valid XML,
+  175 unique canonical locations, 169 active job URLs, 169 valid `lastmod`
+  values, and no redirects, API/feed paths, query strings, foreign origins, or
+  duplicate locations.
+- Live `/jobs`, a sitemap-listed job, `/`, and `/api/v1/meta` returned HTTP
+  200; the Index canonical tag is `/jobs`, and catalog metadata retained 169
+  active jobs.
+- The Worker fallback robots response contains the canonical sitemap
+  directive. Cloudflare Managed Content replaces the apex response with
+  `search=yes` and `Allow: /`; Googlebot remains allowed, while named AI
+  training crawlers are disallowed. Direct Google Search Console sitemap
+  submission is unaffected.
+- No background process was started; process cleanup was not required.
 
 ### Public GitHub release completed — 2026-08-01
 
@@ -455,6 +590,21 @@ remotelens-catalog --remote --config wrangler.production.jsonc` — Passed;
   final deployment. Infinite scroll appended cursor-backed pages without
   duplicate job URLs, mobile toolbar height remained below 160px, and axe
   reported no serious or critical issues.
+- Phase 13 focused rendering tests — Passed; explicit global SSR, catalog ISR,
+  stable-page ISR, uncached SSR fallback, and response-header preservation.
+- Phase 13 `pnpm validate` — Passed: formatting, ESLint, strict TypeScript, 13
+  Vitest files/64 tests, 5 migration assertions, and the production build.
+- Phase 13 `pnpm test:e2e` — Passed: 22 applicable desktop/mobile Chromium
+  cases; 10 live-D1/production cases intentionally skipped by default.
+- Phase 13 targeted Playwright rerun — Passed 2/2 desktop/mobile ISR cases
+  after strengthening the raw job-HTML assertions.
+- Phase 13 `pnpm cf:prod-dry-run` — Passed with production D1, Workflow, rate
+  limiter, static assets, and route-owned rendering policies resolved.
+- Production D1 migration readback — Passed with the Hutong531 account pinned;
+  no migrations remain to apply.
+- Phase 13 production HTTP verification — Passed for all public page classes,
+  canonical and filtered Index URLs, a sitemap-listed active job, missing-job
+  SSR, redirects, API metadata, sitemap, and favicon.
 
 ## Live development fetch
 
@@ -494,6 +644,10 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
   select flows, bounded SSR and cursor loading, provider marks, Skill
   installation, production visuals, and deployment routing.
 - `ACC-OPS-007` passed with no unresolved required blocker.
+- All Phase 13 rendering cases passed: explicit site-wide SSR, complete initial
+  job HTML, bounded catalog ISR, longer stable-page ISR, and uncached SSR
+  failure/not-found behavior.
+- `ACC-OPS-013` passed with no unresolved required blocker.
 - `ACCEPTANCE.md` contains the exact user/operator steps and current results.
 
 ## Evidence
@@ -536,6 +690,10 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
   `tests/integration/catalog-engine.test.ts`,
   `tests/integration/canonical-jobs.test.ts`,
   `tests/api/public-api.test.ts`, and `tests/e2e/public-shell.spec.ts`.
+- Phase 13 rendering policy: `src/start.ts`, `src/lib/rendering.ts`, and the
+  page-route `headers` configurations.
+- Phase 13 automated contracts: `tests/unit/rendering.test.ts` and
+  `tests/e2e/public-shell.spec.ts`.
 
 ## Process cleanup
 
@@ -553,10 +711,13 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 - Final Phase 10 readback confirmed TCP ports 4173 and 8787 are not listening
   and no task-owned preview, Wrangler, Workerd, Playwright, or browser process
   remains.
+- Phase 13 Playwright preview exited after both the full and targeted runs.
+  TCP port 4173 is not listening; no task-owned server or browser process
+  remains.
 
 ## Next
 
-- None. Phase 9 and Phase 10 implementation, acceptance, and publication are
+- None. Phase 13 implementation, acceptance, and production deployment are
   complete.
 
 ## Known risks
@@ -568,6 +729,9 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
   malformed or ambiguous records and retain only bounded health evidence.
 - Live catalog counts and freshness are a point-in-time production snapshot;
   the direct Workflow refreshes them every 12 hours.
+- ISR depends on the shared cache honoring the standard `Cache-Control` and
+  `CDN-Cache-Control` directives. The response policies are live and verified;
+  cache-hit telemetry is not exposed in the current public response headers.
 - The local proxy intermittently returned `ERR_CONNECTION_CLOSED` for
   `workers.dev`; final production verification bypassed only that local proxy
   with the public Cloudflare edge IP while preserving the production hostname,
@@ -580,3 +744,4 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 - Phase 10 has no blocker.
 - Phase 9 has no public-release blocker. The local-only unreachable Git blob is
   not reachable from the published repository and was not transferred.
+- Phase 13 has no blocker.

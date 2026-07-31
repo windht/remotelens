@@ -1,9 +1,31 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageIntro } from '~/components/page-intro'
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLdScript,
+  pageMeta,
+} from '~/lib/seo'
+import { stablePageIsrHeaders } from '~/lib/rendering'
 
 export const Route = createFileRoute('/privacy')({
+  headers: stablePageIsrHeaders,
   head: () => ({
-    meta: [{ title: 'Privacy — RemoteLens' }],
+    meta: pageMeta({
+      title: 'Privacy — RemoteLens',
+      description:
+        'RemoteLens serves public job data without accounts, CV uploads, advertising profiles, or personal-data sales.',
+      path: '/privacy',
+    }),
+    links: [{ rel: 'canonical', href: absoluteUrl('/privacy') }],
+    scripts: [
+      jsonLdScript(
+        breadcrumbJsonLd([
+          { name: 'RemoteLens', path: '/' },
+          { name: 'Privacy', path: '/privacy' },
+        ]),
+      ),
+    ],
   }),
   component: PrivacyPage,
 })
