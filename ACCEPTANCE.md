@@ -2312,11 +2312,12 @@ credentials are required.
 
 **Last result**
 
-- Blocked 2026-07-31 on two release-owner decisions. Removing the local-only
-  unreachable secret blob requires destructive pruning of all unreachable Git
-  recovery objects, and the repository has no license file. Full validation
-  and all non-destructive release checks pass. Minimum input: authorize
-  unreachable-object pruning and choose a license.
+- Blocked 2026-08-01 on one remaining release-owner decision. The owner selected
+  MIT, and the standard license is recorded in `LICENSE`, `package.json`, and
+  `README.md`. Removing the local-only unreachable secret blob still requires
+  destructive pruning of all unreachable Git recovery objects. Full validation
+  and all non-destructive release checks pass. Minimum input: authorize or
+  decline unreachable-object pruning.
 
 ### ACC-OPS-002 — Phase 2 validation gate
 

@@ -6,7 +6,21 @@
 **Current task:** None — P10-001 through P10-005 are complete<br>
 **Current acceptance:** None — all Phase 10 acceptance cases passed<br>
 **Goal status:** Phase 10 complete; the independent Phase 9 release gate remains
-blocked on destructive-pruning authorization and license choice
+blocked only on the destructive-pruning decision
+
+### MIT license selected — 2026-08-01
+
+- The owner selected the MIT License for the open-source release.
+- Added the standard MIT text in `LICENSE` with copyright
+  `2026 Tony Hu Tong`.
+- Declared `"license": "MIT"` in `package.json` and linked the license from
+  `README.md`.
+- `pnpm validate` passed after the license change: formatting, ESLint,
+  TypeScript, 52/52 Vitest tests, 5/5 migration assertions, and the production
+  build.
+- The license-choice blocker is resolved. Phase 9 remains blocked only on the
+  explicit decision to authorize or decline destructive pruning of the
+  local-only unreachable Git object.
 
 ### JS Guru Jobs and clean-index work completed — 2026-08-01
 
@@ -86,8 +100,6 @@ blocked on destructive-pruning authorization and license choice
 
 ## Blockers
 
-- The repository has no `LICENSE`, `COPYING`, or equivalent file. Open-source
-  publication needs the owner to choose the license; no license was guessed.
 - Destructive pruning of all unreachable Git objects requires explicit
   authorization. A normal push is safe from the unreachable blob, but a full
   `.git` directory archive would not be.
@@ -532,9 +544,8 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 ## Next
 
 - Phase 10 has no remaining task or acceptance case.
-- The independent Phase 9 release gate can continue after the owner selects a
-  license and explicitly decides whether to destructively prune the unreachable
-  Git object.
+- The independent Phase 9 release gate can continue after the owner explicitly
+  decides whether to destructively prune the unreachable Git object.
 
 ## Known risks
 
@@ -555,7 +566,6 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 ## Blockers
 
 - Phase 10 has no blocker.
-- Phase 9 remains blocked because the repository has no owner-selected license.
-- Phase 9 also requires explicit authorization before destructively pruning the
+- Phase 9 requires an explicit decision before destructively pruning the
   unreachable Git blob containing a previously populated secret. The blob is
   not reachable by a normal push.

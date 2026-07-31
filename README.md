@@ -1,5 +1,7 @@
 # RemoteLens
 
+[RemoteLens is hosted at remotelens.co.](https://remotelens.co)
+
 RemoteLens is a public, read-only index of remote developer jobs. It combines
 structured filters with source attribution so people and AI agents can discover
 jobs without accounts, ads, promoted listings, or opaque ranking.
@@ -7,6 +9,8 @@ jobs without accounts, ads, promoted listings, or opaque ranking.
 [Browse the Index](https://remotelens.co/jobs) ·
 [Read the API docs](https://remotelens.co/api) ·
 [Install the Agent Skill](https://remotelens.co/skills/install)
+
+[![RemoteLens job index showing structured filters and attributed job cards](docs/assets/remotelens-job-index.png)](https://remotelens.co/jobs)
 
 ## What RemoteLens provides
 
@@ -118,3 +122,7 @@ Vitest plus Playwright for validation.
 Issues and pull requests are welcome. Keep changes within RemoteLens's
 read-only data-provider boundary, preserve source attribution, and include
 tests for user-visible behavior or API contract changes.
+
+## License
+
+RemoteLens is available under the [MIT License](LICENSE).
