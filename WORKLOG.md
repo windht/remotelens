@@ -54,8 +54,18 @@
 - Process cleanup — Passed; the task-owned Playwright preview and browser
   processes exited, and ports 4173 and 8787 are not listening. No task-owned
   Vite, Workerd, Playwright, or Wrangler process remains.
-- No production deployment was performed; this request was scoped to the
-  browser-comment implementation and local validation.
+- `pnpm cf:prod-dry-run` — Passed with the canonical site/API origins, live D1,
+  ingestion Workflow, rate limiter, and all three providers resolved.
+- `pnpm cf:prod-deploy` — Passed from pushed commit
+  `4a8c623862481989f04df204843935806eb616a0`; Worker version
+  `b7d81748-08c8-42db-9b63-50dbc8f6609e` is live on `remotelens.co` and the
+  workers.dev fallback.
+- Production HTTP smoke — Passed; home, `/jobs`, `/api`, `/skills/install`, and
+  `/api/v1/meta` returned HTTP 200. Catalog HTML retained the ISR policy and
+  security headers.
+- Production Chromium smoke — Passed at desktop and mobile sizes; CN API
+  examples, public Skill API/CV guidance, primary filter grouping, expanded
+  disclosure, CN selection, and no horizontal overflow were verified.
 
 ### SSR and ISR delivery started — 2026-08-01
 
