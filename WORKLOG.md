@@ -58,8 +58,10 @@
   ingestion Workflow, rate limiter, and all three providers resolved.
 - `pnpm cf:prod-deploy` — Passed from pushed commit
   `4a8c623862481989f04df204843935806eb616a0`; Worker version
-  `b7d81748-08c8-42db-9b63-50dbc8f6609e` is live on `remotelens.co` and the
-  workers.dev fallback.
+  `b7d81748-08c8-42db-9b63-50dbc8f6609e` was deployed to `remotelens.co` and
+  the workers.dev fallback.
+- Tracker-synchronized redeploy from `00a26b0` — Passed; current Worker
+  version is `ca464ac4-9bdb-4be8-88d1-9c7ae64e19f8` on both production origins.
 - Production HTTP smoke — Passed; home, `/jobs`, `/api`, `/skills/install`, and
   `/api/v1/meta` returned HTTP 200. Catalog HTML retained the ISR policy and
   security headers.

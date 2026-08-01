@@ -3176,6 +3176,8 @@ credentials are required.
   build. The complete Playwright suite passed 24 desktop/mobile cases with 10
   documented live/production environment-gated skips. `git diff --check` passed,
   and no task-owned preview, browser, Workerd, or Wrangler process remained.
-  The pushed implementation commit deployed successfully as Worker version
-  `b7d81748-08c8-42db-9b63-50dbc8f6609e`; canonical-domain HTTP and desktop/mobile
-  Chromium smoke verified the changed API, Skill, and Index flows.
+  The pushed implementation commit deployed successfully, followed by a
+  tracker-synchronized redeploy as current Worker version
+  `ca464ac4-9bdb-4be8-88d1-9c7ae64e19f8`; canonical-domain HTTP and
+  desktop/mobile Chromium smoke verified the changed API, Skill, and Index
+  flows.
