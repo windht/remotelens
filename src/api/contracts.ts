@@ -195,7 +195,7 @@ export function parseApiFilters(
         .string()
         .refine((value) => ISO_COUNTRY_CODES.has(value), {
           message:
-            'Country must be a valid ISO 3166-1 alpha-2 code, such as JP.',
+            'Country must be a valid ISO 3166-1 alpha-2 code, such as CN.',
         })
         .optional(),
       employment_type: z.enum(API_EMPLOYMENT_TYPES).optional(),

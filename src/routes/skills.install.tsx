@@ -39,8 +39,8 @@ function SkillInstallPage() {
         title="Give your agent clean job data. Keep your CV local."
       >
         The repository-owned RemoteLens Agent Skill queries public jobs, reads
-        only a CV file you explicitly select, and explains evidence, gaps, and
-        eligibility on your own computer.
+        only a CV or profile file you explicitly select, and explains evidence,
+        gaps, and eligibility on your own computer.
       </PageIntro>
 
       <section className="mt-section grid gap-10 lg:grid-cols-12">
@@ -60,13 +60,18 @@ function SkillInstallPage() {
             <code>npx skills add windht/remotelens</code>
           </pre>
           <p>
-            Then open <code>skills/remotelens/examples/profile.yaml</code>, set
-            an explicit <code>api_base_url</code> and user-selected{' '}
-            <code>cv_path</code>, and use the{' '}
+            Then open <code>skills/remotelens/examples/profile.yaml</code>. The
+            public <code>api_base_url</code> is already set to{' '}
+            <code>https://remotelens.co/api/v1</code>; change it only for an
+            intentional local checkout or alternate deployment. Set{' '}
+            <code>cv_path</code> to the CV or profile file you select, and use
+            the{' '}
             <Link className="text-pine underline" to="/api">
               public API contract
             </Link>
-            . No private RemoteLens key is required.
+            . If you do not have a CV yet, the Skill can guide you through a
+            local CV/profile draft from facts you provide. No private RemoteLens
+            key is required.
           </p>
         </div>
       </section>
@@ -75,10 +80,11 @@ function SkillInstallPage() {
         <section>
           <div className="grid gap-4">
             <h2 className="!text-[clamp(2rem,4vw,3.5rem)]">
-              You select the CV file.
+              Start with a CV or local profile.
             </h2>
             <p className="lede">
-              The skill never recursively scans your home directory and never
+              Provide an existing file or ask the Skill to guide a local draft
+              from facts you provide. It never scans your home directory or
               uploads CV content to RemoteLens.
             </p>
           </div>
@@ -97,11 +103,13 @@ function SkillInstallPage() {
         <section>
           <div className="grid gap-4">
             <h2 className="!text-[clamp(2rem,4vw,3.5rem)]">
-              You keep the final decision.
+              Prepare applications; you submit.
             </h2>
             <p className="lede">
-              The initial skill does not mutate a tracker, automate a browser,
-              apply for a job, or click a final submission control.
+              The Skill can turn your selected CV and public job evidence into
+              field-by-field guidance or draft answers. You review and enter
+              them yourself; it never opens a browser, mutates a tracker,
+              applies for a job, or clicks a final submission control.
             </p>
           </div>
         </section>

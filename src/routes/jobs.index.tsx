@@ -155,30 +155,6 @@ function JobsPage() {
           method="get"
         >
           <div className="filter-row">
-            <SelectField label="Country">
-              <EnhancedSelect
-                defaultValue={search.country ?? ''}
-                label="Country eligibility"
-                name="country"
-                options={COUNTRY_SELECT_OPTIONS}
-              />
-            </SelectField>
-            <SelectField label="Role">
-              <EnhancedSelect
-                defaultValue={search.role_family}
-                label="Role family"
-                name="role_family"
-                options={ROLE_OPTIONS}
-              />
-            </SelectField>
-            <SelectField label="Scope">
-              <EnhancedSelect
-                defaultValue={search.remote_scope ?? ''}
-                label="Remote scope"
-                name="remote_scope"
-                options={SCOPE_OPTIONS}
-              />
-            </SelectField>
             <SelectField label="Employment">
               <EnhancedSelect
                 defaultValue={search.employment_type ?? ''}
@@ -209,8 +185,37 @@ function JobsPage() {
           </div>
 
           <details className="index-more-filters">
-            <summary>More exact filters</summary>
+            <summary>
+              <span className="index-more-label-closed">
+                More exact filters
+              </span>
+              <span className="index-more-label-open">Hide extra filters</span>
+            </summary>
             <div className="index-more-grid">
+              <SelectField label="Country">
+                <EnhancedSelect
+                  defaultValue={search.country ?? ''}
+                  label="Country eligibility"
+                  name="country"
+                  options={COUNTRY_SELECT_OPTIONS}
+                />
+              </SelectField>
+              <SelectField label="Role">
+                <EnhancedSelect
+                  defaultValue={search.role_family}
+                  label="Role family"
+                  name="role_family"
+                  options={ROLE_OPTIONS}
+                />
+              </SelectField>
+              <SelectField label="Scope">
+                <EnhancedSelect
+                  defaultValue={search.remote_scope ?? ''}
+                  label="Remote scope"
+                  name="remote_scope"
+                  options={SCOPE_OPTIONS}
+                />
+              </SelectField>
               <Field
                 description="Exact lexical value; there is no autocomplete."
                 label="Exact filterable tag"

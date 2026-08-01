@@ -77,7 +77,7 @@ function ApiPage() {
             </p>
             <pre className="paper-code">
               <code>
-                GET /api/v1/jobs?country=JP&amp;source=wwr&amp;tag=javascript
+                GET /api/v1/jobs?country=CN&amp;source=wwr&amp;tag=javascript
               </code>
             </pre>
           </section>
@@ -87,7 +87,7 @@ function ApiPage() {
             <h2>Structured filters</h2>
             <div className="border-line-strong border-t">
               {[
-                ['country', 'ISO alpha-2 eligibility, for example JP'],
+                ['country', 'ISO alpha-2 eligibility, for example CN'],
                 ['company', 'exact after company-name normalization'],
                 ['tag', 'exact documented filterable source label'],
                 ['source', 'repeatable exact provider key with OR semantics'],

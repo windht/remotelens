@@ -359,6 +359,26 @@ are complete.
     every public page class and a sitemap-listed job.
   - Acceptance: `ACC-OPS-013`
 
+## Phase 14 — Browser-comment copy and filter refinement
+
+- [x] **P14-001 — Correct public country examples and ordering**
+  - Use `CN` in public country-code examples, make the public API base URL the
+    RemoteLens default, and keep Japan out of the first country option.
+  - Acceptance: `ACC-REFINE-007`, `ACC-SKILL-006`
+- [x] **P14-002 — Clarify local CV setup and manual application-form guidance**
+  - Explain how the Skill helps users provide or create a local CV/profile and
+    prepare form answers without opening, filling, or submitting applications.
+  - Acceptance: `ACC-SKILL-006`
+- [x] **P14-003 — Rebuild the Index filter disclosure layout**
+  - Keep Employment, Seniority, and Sort in the primary row; move all other
+    filters into a multi-row extra-filter area, center its controls, and switch
+    the disclosure label between More and Hide.
+  - Acceptance: `ACC-REFINE-007`, `ACC-REFINE-008`
+- [x] **P14-004 — Pass the browser-comment refinement gate**
+  - Run focused Skill and browser checks, full repository validation, and
+    responsive visual/interaction review; synchronize all tracker evidence.
+  - Acceptance: `ACC-OPS-014`
+
 ## Operator-directed Cloudflare setup
 
 - [x] **OPS-001 — Bind the project to the Hutong531 Cloudflare account and

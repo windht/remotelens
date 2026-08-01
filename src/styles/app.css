@@ -410,6 +410,7 @@ h3 {
   min-height: 2.75rem;
   cursor: pointer;
   align-items: center;
+  gap: 0.35rem;
   color: var(--color-pine);
   font-size: 0.8125rem;
   font-weight: 650;
@@ -420,10 +421,22 @@ h3 {
   text-decoration: underline;
 }
 
+.index-more-label-open {
+  display: none;
+}
+
+.index-more-filters[open] .index-more-label-closed {
+  display: none;
+}
+
+.index-more-filters[open] .index-more-label-open {
+  display: inline;
+}
+
 .index-more-grid {
   display: grid;
   gap: 1rem;
-  align-items: end;
+  align-items: center;
   padding-block: 0.75rem 0.5rem;
 }
 
@@ -793,9 +806,7 @@ h3 {
   }
 
   .index-more-grid {
-    grid-template-columns:
-      minmax(12rem, 1fr) minmax(12rem, 1fr) minmax(10rem, 0.8fr)
-      auto auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .index-results .job-facts,
@@ -804,7 +815,7 @@ h3 {
   }
 
   .filter-row {
-    grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
   }
 }
 

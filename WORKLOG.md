@@ -2,10 +2,60 @@
 
 ## Current status
 
-**Phase:** Phase 13 — Explicit SSR and ISR delivery<br>
-**Current task:** None — P13-001 through P13-003 are complete<br>
-**Current acceptance:** None — ACC-RENDER-001 through ACC-RENDER-003 and ACC-OPS-013 passed<br>
+**Phase:** Phase 14 — Browser-comment copy and filter refinement<br>
+**Current task:** None — P14-001 through P14-004 are complete<br>
+**Current acceptance:** None — ACC-REFINE-007, ACC-REFINE-008, ACC-SKILL-006, and ACC-OPS-014 passed<br>
 **Goal status:** Complete
+
+### Browser-comment refinement started — 2026-08-01
+
+- The requested scope is limited to public country examples/order, the default
+  RemoteLens API origin in Skill setup, local CV/profile and manual form
+  guidance, and the Index filter disclosure/layout.
+- RemoteLens remains read-only: the Skill may prepare evidence-based answers
+  for a user completing a form, but it does not open a browser, enter data,
+  submit an application, or mutate a tracker.
+- All Phase 14 acceptance cases passed focused or final validation, including
+  the release gate `ACC-OPS-014`.
+
+### Browser-comment copy and Index refinement implemented — 2026-08-01
+
+- Public API/home examples now use `country=CN`; API validation guidance also
+  uses CN, and the Index country options begin with China (CN) rather than
+  Japan (JP).
+- The Skill example now defaults to `https://remotelens.co/api/v1`. Local
+  development and alternate deployments are documented as intentional
+  overrides only.
+- Added local CV/profile setup guidance for users who already have a file or
+  need to draft one from supplied facts. Added evidence-based,
+  field-by-field application-form preparation guidance while preserving the
+  no-browser/no-entry/no-submit/read-only boundary.
+- Rebuilt the Index filter panel so Employment, Seniority, Sort, and Apply are
+  the primary controls. Country, Role, Scope, tag, Company, Source,
+  stale/closed, and clear controls are now in a multi-row extra-filter grid.
+  The native disclosure switches between `More exact filters` and
+  `Hide extra filters`, with centered grid alignment.
+- `pnpm skill:check` — Passed; 3/3 Skill contract and safety tests.
+- Focused Vitest — Passed; 15/15 job-search and Skill tests.
+- Focused Playwright — Passed; 24/24 desktop/mobile public-shell cases,
+  including CN/API/Skill copy, expanded filter screenshots, no-JavaScript GET
+  submission, axe, and overflow checks.
+- Expanded filter screenshots:
+  `test-results/public-shell-public-shell--bcc49-lters-aligned-and-multi-row-desktop-chromium/jobs-filters-expanded.png`
+  and the corresponding mobile Chromium artifact.
+
+### Browser-comment refinement release gate — 2026-08-01
+
+- `pnpm validate` — Passed; Prettier, ESLint, strict TypeScript, 13 Vitest
+  files/64 tests, 5 migration assertions, and the production build.
+- `pnpm test:e2e` — Passed; 24 desktop/mobile Chromium cases. The 10 live
+  catalog/production cases remain environment-gated skips by repository design.
+- `git diff --check` — Passed.
+- Process cleanup — Passed; the task-owned Playwright preview and browser
+  processes exited, and ports 4173 and 8787 are not listening. No task-owned
+  Vite, Workerd, Playwright, or Wrangler process remains.
+- No production deployment was performed; this request was scoped to the
+  browser-comment implementation and local validation.
 
 ### SSR and ISR delivery started — 2026-08-01
 

@@ -3027,3 +3027,152 @@ credentials are required.
   canonical-domain and workers.dev header probes passed after edge propagation;
   final SSR content, ISR headers, missing-job SSR, redirects, API, sitemap, and
   favicon regression checks passed.
+
+## Phase 14 — Browser-comment copy and filter refinement
+
+### ACC-REFINE-007 — Public examples and Index country ordering use the reviewed defaults
+
+**Priority:** High<br>
+**Automation:** Unit/contract test and Playwright<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The application is running.
+
+**Steps**
+
+1. Open `/`, `/api`, `/jobs`, and `/skills/install`.
+2. Inspect country-code examples, the API base URL in the Skill example, and
+   the country select options.
+3. Open the country select on the Index.
+
+**Expected result**
+
+- Public country-code examples use `CN`, not `JP`.
+- The public Skill profile defaults to `https://remotelens.co/api/v1`.
+- China (CN) is the first named country option; Japan is not first.
+
+**Evidence**
+
+- `src/routes/api.tsx`, `src/routes/index.tsx`,
+  `skills/remotelens/examples/profile.yaml`, and
+  `tests/e2e/public-shell.spec.ts`.
+
+**Last result**
+
+- Passed 2026-08-01. Public API and home examples use `CN`, the Skill example
+  defaults to `https://remotelens.co/api/v1`, and China (CN) is the first named
+  Index country option while Japan remains available later in the list.
+
+### ACC-REFINE-008 — Index filters disclose clearly and remain usable across rows
+
+**Priority:** Critical<br>
+**Automation:** Playwright, axe, and screenshot review<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The application is running at desktop and mobile viewport sizes.
+
+**Steps**
+
+1. Open `/jobs` with JavaScript enabled.
+2. Confirm the first filter row contains Employment, Seniority, Sort, and Apply.
+3. Expand the extra filters disclosure.
+4. Inspect its label, alignment, wrapping, and all remaining controls.
+5. Repeat with JavaScript disabled and on the mobile viewport.
+
+**Expected result**
+
+- The collapsed label is `More exact filters`; the expanded label is
+  `Hide extra filters`.
+- Country, Role, Scope, tag, Company, Source, stale/closed, and clear controls
+  are inside the disclosure and flow across multiple rows when needed.
+- Labels, controls, checkbox, and clear action are visually aligned without
+  horizontal overflow.
+- GET filter submission and no-JavaScript fallback behavior remain intact.
+- No serious or critical accessibility violations are reported.
+
+**Evidence**
+
+- `tests/e2e/public-shell.spec.ts` and responsive screenshots under
+  `test-results/`.
+
+**Last result**
+
+- Passed 2026-08-01. Desktop and mobile Playwright checks confirmed the
+  Employment/Seniority/Sort primary row, the `More exact filters` /
+  `Hide extra filters` disclosure labels, multi-row desktop and single-column
+  mobile extra filters, aligned controls, GET submission, no-JavaScript
+  fallback, no serious/critical axe violations, and no horizontal overflow.
+
+### ACC-SKILL-006 — Skill guides local CV setup and manual form preparation
+
+**Priority:** Critical<br>
+**Automation:** File contract test and Playwright<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The repository Skill package and `/skills/install` page are available.
+
+**Steps**
+
+1. Open `/skills/install` and inspect the installation/configuration guidance.
+2. Read the repository Skill setup references.
+3. Ask the Skill how to proceed when no CV/profile file exists and how to use a
+   selected CV while completing an application form.
+
+**Expected result**
+
+- The public API base URL is presented as the default, with local overrides
+  explained only for intentional local development.
+- The Skill tells the user to provide or explicitly create a local CV/profile
+  instead of searching for one.
+- The Skill can guide field-by-field answer preparation from local CV/job
+  evidence, flags unknown facts, and leaves browser entry and final submission
+  to the user.
+- CV text and paths remain local and no tracker/application mutation is implied.
+
+**Evidence**
+
+- `skills/remotelens/SKILL.md`, `skills/remotelens/references/cv-setup.md`,
+  `skills/remotelens/references/client-local-workflow.md`,
+  `src/routes/skills.install.tsx`, and package contract tests.
+
+**Last result**
+
+- Passed 2026-08-01. The installation page and package references use the
+  public API default, tell users to provide or explicitly create one local
+  CV/profile, and describe evidence-based field-by-field answer preparation
+  while leaving browser entry and final submission to the user.
+
+### ACC-OPS-014 — Browser-comment refinement release gate
+
+**Priority:** Critical<br>
+**Automation:** CLI, Vitest, build, Playwright, and diff hygiene<br>
+**Status:** Passed
+
+**Expected result**
+
+- Focused Skill and Index acceptance checks pass.
+- Formatting, lint, strict TypeScript, unit/integration tests, migration checks,
+  and production build pass.
+- Applicable desktop/mobile/no-JavaScript browser checks pass with no serious
+  or critical axe violations or horizontal overflow.
+- `TASKS.md`, `ACCEPTANCE.md`, and `WORKLOG.md` describe the same completed
+  scope and evidence.
+
+**Evidence**
+
+- `TASKS.md`, `ACCEPTANCE.md`, `WORKLOG.md`, command output, and Playwright
+  artifacts.
+
+**Last result**
+
+- Passed 2026-08-01. `pnpm validate` passed formatting, ESLint, strict
+  TypeScript, 64 Vitest tests, 5 migration assertions, and the production
+  build. The complete Playwright suite passed 24 desktop/mobile cases with 10
+  documented live/production environment-gated skips. `git diff --check` passed,
+  and no task-owned preview, browser, Workerd, or Wrangler process remained.

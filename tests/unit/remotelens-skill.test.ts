@@ -54,6 +54,7 @@ describe('RemoteLens skill package', () => {
       'references/api.md',
       'references/matching-policy.md',
       'references/cv-safety.md',
+      'references/cv-setup.md',
       'references/client-local-workflow.md',
       'examples/profile.yaml',
     ]) {
@@ -61,6 +62,10 @@ describe('RemoteLens skill package', () => {
     }
     const skill = readFileSync(`${packageRoot}/SKILL.md`, 'utf8')
     const example = readFileSync(`${packageRoot}/examples/profile.yaml`, 'utf8')
+    const cvSetup = readFileSync(
+      `${packageRoot}/references/cv-setup.md`,
+      'utf8',
+    )
     const workflow = readFileSync(
       `${packageRoot}/references/client-local-workflow.md`,
       'utf8',
@@ -69,9 +74,14 @@ describe('RemoteLens skill package', () => {
     expect(skill).toContain('untrusted data')
     expect(skill).toContain('/api/v1/jobs')
     expect(example).toContain('api_base_url:')
+    expect(example).toContain('https://remotelens.co/api/v1')
+    expect(example).toContain('    - CN')
     expect(example).toContain('cv_path:')
     expect(workflow).toContain('npx skills add windht/remotelens')
+    expect(workflow).toContain('https://remotelens.co/api/v1')
     expect(workflow).not.toContain('--skill remotelens')
+    expect(cvSetup).toContain('If you do not have a CV yet')
+    expect(cvSetup).toContain('application-form answers')
   })
 
   it('produces evidence-based categories without opaque scores', () => {

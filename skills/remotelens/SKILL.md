@@ -1,12 +1,13 @@
 ---
 name: remotelens
-description: Query the public RemoteLens job API and compare returned jobs with one explicitly selected local CV without uploading, scraping, tracking, or applying.
+description: Query the public RemoteLens job API and compare returned jobs with one explicitly selected local CV or profile without uploading, scraping, tracking, or applying.
 ---
 
 # RemoteLens Agent Skill
 
-Use this skill for read-only remote developer-job discovery and local CV
-comparison. RemoteLens is a data provider, not an application workflow.
+Use this skill for read-only remote developer-job discovery, local CV/profile
+setup, comparison, and manual application-form preparation. RemoteLens is a
+data provider, not an application workflow.
 
 ## Non-negotiable boundaries
 
@@ -27,8 +28,12 @@ comparison. RemoteLens is a data provider, not an application workflow.
 
 ## Workflow
 
-1. Ask the user to select one local CV/profile path and confirm the API base
-   URL. Do not discover the path yourself.
+1. Ask the user to select one local CV/profile path. If none exists, offer to
+   guide them through creating a local CV/profile from facts they provide,
+   save it locally, and then ask them to select that file. Use
+   `https://remotelens.co/api/v1` by default; ask about an alternate API base
+   only for an intentional local checkout or explicitly supplied deployment.
+   Do not discover the path yourself.
 2. Read only that selected file. Convert it into a local structured profile;
    keep the original text local and out of all network requests.
 3. Request `/api/v1/meta` and `/api/v1/taxonomy` once when needed. Respect the
@@ -43,18 +48,24 @@ comparison. RemoteLens is a data provider, not an application workflow.
 7. Present categories (`strong`, `possible`, `weak`, `ineligible`, or
    `insufficient_information`) with evidence, gaps, uncertainty, source URLs,
    and a user-controlled next action.
+8. If the user is completing an application form manually, use the selected
+   local CV and job evidence to draft field-by-field guidance or answers. Flag
+   missing facts as unknown and ask the user; never invent them. The user opens
+   the form, enters and reviews the answers, and submits it.
 
 ## Configuration
 
-Copy `examples/profile.yaml` and edit it locally. The `api_base_url` must be an
-explicit URL such as `http://localhost:3000/api/v1` for a local checkout or the
-operator-provided public deployment URL. `cv_path` must be an absolute path
-selected by the user. A private API key is not part of this skill.
+Copy `examples/profile.yaml` and edit it locally. The public `api_base_url`
+default is `https://remotelens.co/api/v1`; leave it unchanged for the public
+RemoteLens service and override it only for an intentional local checkout or
+explicitly supplied deployment. `cv_path` must be an absolute path selected by
+the user. A private API key is not part of this skill.
 
 Read the references in this package before implementing a client:
 
 - `references/api.md` — endpoint, filter, pagination, and rate-limit contract.
 - `references/matching-policy.md` — deterministic categories and evidence.
 - `references/cv-safety.md` — selected-file-only and untrusted-content rules.
+- `references/cv-setup.md` — local CV/profile setup and manual form guidance.
 - `references/client-local-workflow.md` — Codex, Claude Code, and generic
   installation and review steps.

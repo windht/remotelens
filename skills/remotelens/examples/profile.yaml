@@ -1,5 +1,6 @@
-# Repository-owned example. Replace every path and value locally.
-api_base_url: http://localhost:3000/api/v1
+# Repository-owned example. The public API is ready to use; replace the path
+# and local matching preferences as needed. Use localhost only for local dev.
+api_base_url: https://remotelens.co/api/v1
 cv_path: /absolute/path/to/the/cv-you-selected.md
 
 profile:
@@ -8,7 +9,7 @@ profile:
     - React
     - distributed systems
   preferred_countries:
-    - JP
+    - CN
   employment_types:
     - full_time
   seniority: senior

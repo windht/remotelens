@@ -107,7 +107,7 @@ export function parseJobSearch(input: Record<string, unknown>): JobSearch {
     error = {
       code: 'invalid_filter',
       field: 'country',
-      message: 'Country must be a valid ISO 3166-1 alpha-2 code, such as JP.',
+      message: 'Country must be a valid ISO 3166-1 alpha-2 code, such as CN.',
     }
   } else if (
     employmentType &&

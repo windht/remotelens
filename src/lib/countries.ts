@@ -4,7 +4,7 @@ const ISO_ALPHA_2 =
 export const ISO_COUNTRY_CODES = new Set(ISO_ALPHA_2.split(' '))
 
 export const COUNTRY_OPTIONS = [
-  ['JP', 'Japan'],
+  ['CN', 'China'],
   ['US', 'United States'],
   ['CA', 'Canada'],
   ['GB', 'United Kingdom'],
@@ -16,4 +16,5 @@ export const COUNTRY_OPTIONS = [
   ['SG', 'Singapore'],
   ['AU', 'Australia'],
   ['NZ', 'New Zealand'],
+  ['JP', 'Japan'],
 ] as const

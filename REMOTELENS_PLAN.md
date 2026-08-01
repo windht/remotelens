@@ -994,7 +994,7 @@ The API retains `role_family` for a stable contract, but `engineering` is the on
 
 #### Eligibility-filter semantics
 
-RemoteLens ingests jobs globally and never chooses a default eligibility filter from a visitor's IP address. `country` uses ISO 3166-1 alpha-2 codes: `country=JP` includes jobs explicitly eligible in Japan and `worldwide` jobs that do not explicitly exclude Japan; it excludes jobs that explicitly exclude Japan and does not include `unspecified` jobs. Results must expose whether eligibility is employer-stated, parsed, or normalized.
+RemoteLens ingests jobs globally and never chooses a default eligibility filter from a visitor's IP address. `country` uses ISO 3166-1 alpha-2 codes: `country=CN` includes jobs explicitly eligible in China and `worldwide` jobs that do not explicitly exclude China; it excludes jobs that explicitly exclude China and does not include `unspecified` jobs. Results must expose whether eligibility is employer-stated, parsed, or normalized.
 
 `region` uses the controlled UN M49 region or subregion taxonomy. User-facing aliases such as `EMEA` and `APAC` may expand at the query/UI layer but are never stored as the canonical taxonomy value; the original provider wording remains available with provenance.
 
@@ -1287,14 +1287,14 @@ Example:
 
 ```yaml
 version: 1
-api_base_url: 'https://remotelens.example/api/v1'
+api_base_url: 'https://remotelens.co/api/v1'
 cv_path: '/Users/example/Documents/cv.md'
 preferences:
   remote_scope:
     - worldwide
     - region
   eligible_countries:
-    - JP
+    - CN
   excluded_timezones: []
   minimum_salary: null
   salary_currency: null

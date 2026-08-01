@@ -137,7 +137,7 @@ function HomePage() {
           </p>
           <pre className="paper-code">
             <code>
-              GET /api/v1/jobs?country=JP&amp;source=wwr&amp;tag=javascript
+              GET /api/v1/jobs?country=CN&amp;source=wwr&amp;tag=javascript
             </code>
           </pre>
         </div>

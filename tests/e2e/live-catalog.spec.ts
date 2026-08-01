@@ -74,6 +74,9 @@ describeLive('live D1 catalog without JavaScript', () => {
       .locator('select[name="employment_type"]')
       .selectOption('full_time')
     await page.getByText('More exact filters', { exact: true }).click()
+    await expect(
+      page.getByText('Hide extra filters', { exact: true }),
+    ).toBeVisible()
     await page.getByLabel('Exact filterable tag').fill('rust')
     await page
       .locator('select[name="source"]')
