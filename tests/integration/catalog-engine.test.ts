@@ -195,7 +195,7 @@ describe('fixture-driven catalog ingestion', () => {
     expect(catalog.cacheEpoch).toBe(partialEpoch)
   })
 
-  it('marks missing after two complete omissions, closes after 72 hours, and retains for 30 days', async () => {
+  it('marks missing after two complete omissions, closes after 72 hours, and retains for 60 days', async () => {
     const catalog = new MemoryCatalog()
     const remoteOk = await record('remote_ok', 'old')
     await catalog.runCycle({
@@ -227,13 +227,13 @@ describe('fixture-driven catalog ingestion', () => {
 
     await catalog.runCycle({
       cycleKey: 'retain',
-      now: closedAt + 29 * 24 * 60 * 60 * 1_000,
+      now: closedAt + 59 * 24 * 60 * 60 * 1_000,
       observations: [observation('remote_ok', [])],
     })
     expect(catalog.records.has('remote_ok:old')).toBe(true)
     await catalog.runCycle({
       cycleKey: 'delete',
-      now: closedAt + 31 * 24 * 60 * 60 * 1_000,
+      now: closedAt + 61 * 24 * 60 * 60 * 1_000,
       observations: [observation('remote_ok', [])],
     })
     expect(catalog.records.has('remote_ok:old')).toBe(false)

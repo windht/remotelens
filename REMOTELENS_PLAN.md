@@ -854,7 +854,7 @@ Failed ingestion runs must not increment missing counts.
 - `stale`: no active source record, but at least one record is still within the grace period.
 - `closed`: every linked source record is closed.
 
-Closed jobs remain accessible by direct URL, API ID, and an explicit closed-status list filter for 30 days, subject to any shorter source-retention rule, but do not appear in default active results. After that period, delete their canonical and source-record data.
+Closed jobs remain accessible by direct URL, API ID, and an explicit closed-status list filter for 60 days, subject to any shorter source-retention rule, but do not appear in default active results. After that period, delete their canonical and source-record data.
 
 ---
 

@@ -13,6 +13,7 @@ import type {
 
 const HOURS = 60 * 60 * 1_000
 const DAYS = 24 * HOURS
+const CLOSED_RETENTION_DAYS = 60
 
 export type StoredSourceRecord = NormalizedSourceRecord & {
   closedAt?: number
@@ -282,7 +283,7 @@ export class MemoryCatalog {
           }
         } else if (
           record.closedAt !== undefined &&
-          now - record.closedAt >= 30 * DAYS
+          now - record.closedAt >= CLOSED_RETENTION_DAYS * DAYS
         ) {
           this.records.delete(id)
         }

@@ -68,7 +68,7 @@ are complete.
     non-destructive suspension, audit state.
   - Acceptance: `ACC-INGEST-001`, `ACC-INGEST-002`, `ACC-FLAGS-001`
 - [x] **P1-007 — Implement complete/partial/failure stale-state safeguards**
-  - Two complete missing checks, 72-hour closure, 30-day retention; partial or
+  - Two complete missing checks, 72-hour closure, configured retention; partial or
     failed provider runs never advance absence.
   - Acceptance: `ACC-PARTIAL-001`, `ACC-STALE-001`
 - [x] **P1-008 — Implement cache-epoch and dedupe-candidate foundations**
@@ -378,6 +378,25 @@ are complete.
   - Run focused Skill and browser checks, full repository validation, and
     responsive visual/interaction review; synchronize all tracker evidence.
   - Acceptance: `ACC-OPS-014`
+
+## Phase 15 — Scheduled 60-day catalog cleanup
+
+- [x] **P15-001 — Define the 60-day catalog retention contract**
+  - Retain closed source records for 60 days, remove retired canonical data only
+    after its provenance is no longer needed, and prune completed ingestion
+    history older than the same boundary without touching active or suspended
+    source data.
+  - Acceptance: `ACC-RETENTION-001`, `ACC-RETENTION-002`
+- [x] **P15-002 — Run retention cleanup with successful ingestion**
+  - Add an idempotent post-finalization cleanup step to the existing twice-daily
+    Workflow, preserve failed/partial stale-state safeguards, rebuild remaining
+    canonical jobs, and rotate the catalog cache epoch when public data changes.
+  - Acceptance: `ACC-RETENTION-001`, `ACC-WORKFLOW-001`, `ACC-STALE-001`
+- [ ] **P15-003 — Pass the retention release gate and deploy**
+  - Run focused retention/migration checks, the full validation suite, the
+    production dry run, push the validated commit, deploy it, and verify the
+    live Worker schedule and bounded cleanup readback.
+  - Acceptance: `ACC-OPS-015`
 
 ## Operator-directed Cloudflare setup
 

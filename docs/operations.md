@@ -108,6 +108,33 @@ A fully failed cycle keeps the previous cache epoch. Partial and successful
 cycles rotate it. A bounded error code/message may be inspected for diagnosis;
 do not paste secrets or raw source text into incident notes.
 
+## Scheduled retention cleanup
+
+The existing `remotelens-catalog-ingestion` Workflow runs every 12 hours. After
+a fully successful provider fetch is finalized, it runs the retention cleanup
+step with `SOURCE_CLOSED_RETENTION_DAYS=60`. The cleanup boundary is inclusive:
+closed source records with `closed_at` at or before 60 days ago are retired.
+Their derived canonical jobs, retired dedupe pairs, and completed ingestion
+cycles are cleaned in foreign-key-safe order, and the remaining canonical
+catalog is rebuilt. Expired locks are removed as well.
+
+Partial or failed cycles skip retention cleanup, and active or suspended source
+records are never removed by this policy. The cleanup is idempotent, so a
+retried Workflow step does not repeat deletions or create duplicate jobs.
+Inspect only bounded aggregate results when verifying it:
+
+```bash
+pnpm exec wrangler d1 execute remotelens-catalog --remote --command \
+  "SELECT status, COUNT(*) AS count FROM source_records GROUP BY status ORDER BY status"
+pnpm exec wrangler d1 execute remotelens-catalog --remote --command \
+  "SELECT status, COUNT(*) AS count FROM ingestion_cycles GROUP BY status ORDER BY status"
+pnpm exec wrangler workflows instances list remotelens-catalog-ingestion
+```
+
+Do not select descriptions, provider payloads, secrets, or CV data into
+cleanup logs. Do not manually delete catalog rows to simulate the scheduled
+policy; use a disposable local D1 database for tests.
+
 ## Provider suspension and recovery
 
 Each provider has one independent enablement variable:

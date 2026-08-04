@@ -3,7 +3,10 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
 import { listCanonicalJobs, websiteJobs } from '../../src/catalog/catalog-db'
-import { createDedupeCandidates } from '../../src/ingestion/d1-catalog'
+import {
+  cleanupCatalogRetention,
+  createDedupeCandidates,
+} from '../../src/ingestion/d1-catalog'
 import { resolveDedupeCandidates } from '../../src/ingestion/dedupe'
 import { rebuildCanonicalJobs } from '../../src/ingestion/canonical-jobs'
 
@@ -407,6 +410,118 @@ describe('canonical job rebuild', () => {
         )
         .get(),
     ).toEqual({ status: 'active' })
+  })
+
+  it('cleans retired source data and completed ingestion history at 60 days', async () => {
+    const db = migratedDatabase()
+    const d1 = new MockD1(db) as unknown as D1Database
+    const retentionDays = 60
+    const day = 24 * 60 * 60 * 1_000
+    const now = 100 * day
+    const cutoff = now - retentionDays * day
+
+    insertSource(db, {
+      company: 'Retired Company',
+      description: 'Retired description.',
+      id: 'retired-source',
+      provider: 'remote_ok',
+      sourceKey: 'retired-source',
+      title: 'Retired Engineer',
+    })
+    insertSource(db, {
+      company: 'Retired Company',
+      description: 'Still live description.',
+      id: 'live-source',
+      provider: 'wwr',
+      sourceKey: 'live-source',
+      title: 'Retired Engineer',
+    })
+    insertSource(db, {
+      company: 'Recent Closed Company',
+      description: 'Recent closed description.',
+      id: 'recent-closed-source',
+      provider: 'wwr',
+      sourceKey: 'recent-closed-source',
+      title: 'Recent Closed Engineer',
+    })
+
+    await createDedupeCandidates(d1, now)
+    await resolveDedupeCandidates(d1, { maxPerRun: 50, now })
+    await rebuildCanonicalJobs(d1, now)
+    db.prepare(
+      `UPDATE source_records
+       SET status = 'closed', missing_count = 2, missing_since = ?, closed_at = ?
+       WHERE id = 'retired-source'`,
+    ).run(cutoff, cutoff)
+    db.prepare(
+      `UPDATE source_records
+       SET status = 'closed', missing_count = 2, missing_since = ?, closed_at = ?
+       WHERE id = 'recent-closed-source'`,
+    ).run(cutoff + 1_000, cutoff + 1_000)
+    await rebuildCanonicalJobs(d1, now)
+
+    db.prepare(
+      `INSERT INTO ingestion_cycles (
+        id, cycle_key, status, started_at, finished_at, cache_epoch_before,
+        cache_epoch_after
+      ) VALUES ('old-cycle', 'old-cycle', 'successful', ?, ?, 'old', 'old-after')`,
+    ).run(cutoff, cutoff)
+    db.prepare(
+      `INSERT INTO ingestion_source_runs (
+        id, cycle_id, provider, status, started_at, finished_at
+      ) VALUES ('old-run', 'old-cycle', 'remote_ok', 'successful', ?, ?)`,
+    ).run(cutoff, cutoff)
+
+    const result = await cleanupCatalogRetention(d1, {
+      now,
+      retentionDays,
+    })
+
+    expect(result).toMatchObject({
+      cutoff,
+      deletedIngestionCycles: 1,
+      deletedLocks: 0,
+      deletedSourceRecords: 1,
+    })
+    expect(
+      db.prepare('SELECT id FROM source_records ORDER BY id').all(),
+    ).toEqual([{ id: 'live-source' }, { id: 'recent-closed-source' }])
+    expect(db.prepare('SELECT count(*) AS count FROM jobs').get()).toEqual({
+      count: 2,
+    })
+    expect(
+      db
+        .prepare(
+          `SELECT count(*) AS count
+           FROM job_provenance
+           WHERE source_record_id = 'retired-source'`,
+        )
+        .get(),
+    ).toEqual({ count: 0 })
+    expect(
+      db.prepare('SELECT count(*) AS count FROM dedupe_candidates').get(),
+    ).toEqual({ count: 0 })
+    expect(
+      db.prepare('SELECT count(*) AS count FROM dedupe_decisions').get(),
+    ).toEqual({ count: 0 })
+    expect(
+      db.prepare('SELECT count(*) AS count FROM ingestion_cycles').get(),
+    ).toEqual({ count: 0 })
+    expect(
+      db
+        .prepare("SELECT cache_epoch FROM catalog_state WHERE key = 'live'")
+        .get(),
+    ).not.toEqual({ cache_epoch: 'initial' })
+
+    const repeated = await cleanupCatalogRetention(d1, {
+      now,
+      retentionDays,
+    })
+    expect(repeated.deletedSourceRecords).toBe(0)
+    expect(repeated.cacheEpoch).toBeUndefined()
+    expect(db.prepare('SELECT count(*) AS count FROM jobs').get()).toEqual({
+      count: 2,
+    })
   })
 })
 

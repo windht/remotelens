@@ -8,8 +8,10 @@ import { remoteOkAdapter } from './adapters/remote-ok'
 import { WWR_FEEDS, fetchWwrFeeds } from './adapters/wwr'
 import {
   claimCycle,
+  cleanupCatalogRetention,
   finalizeCycle,
   persistProviderObservation,
+  shouldRunCatalogRetention,
 } from './d1-catalog'
 import { boundedError } from './normalization'
 import type { ProviderRunSummary } from './types'
@@ -221,7 +223,7 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
       },
     )
 
-    return step.do('finalize ingestion cycle', async () =>
+    const finalized = await step.do('finalize ingestion cycle', async () =>
       finalizeCycle(this.env.DB, {
         cacheEpochBefore: claim.cacheEpochBefore,
         cycleId: claim.cycleId,
@@ -241,5 +243,20 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
         providerRuns: [jsguru, remoteOk, wwr] as ProviderRunSummary[],
       }),
     )
+
+    const cleanup = await step.do('clean up retired catalog data', async () => {
+      if (!shouldRunCatalogRetention(finalized.status)) {
+        return {
+          reason: 'retention waits for a fully successful fetch',
+          status: 'skipped' as const,
+        }
+      }
+      return cleanupCatalogRetention(this.env.DB, {
+        now: Date.now(),
+        retentionDays: environment.SOURCE_CLOSED_RETENTION_DAYS,
+      })
+    })
+
+    return { ...finalized, cleanup }
   }
 }

@@ -675,7 +675,7 @@ credentials are required.
 1. Seed a source record.
 2. Execute two complete successful provider checks where it is absent.
 3. Advance the fixture clock beyond 72 hours and run another complete check.
-4. Advance beyond 30 closed days and run cleanup.
+4. Advance beyond 60 closed days and run cleanup.
 5. Repeat with failed and partial checks.
 
 **Expected result**
@@ -683,7 +683,8 @@ credentials are required.
 - One complete omission does not mark missing.
 - Two complete omissions mark missing.
 - Closure occurs only after a complete check beyond 72 hours.
-- Closed records retain for 30 days, then delete.
+- Closed records retain for 60 days, then delete on a successful scheduled
+  ingestion cycle.
 - Failed/partial checks never advance absence or retention transitions.
 
 **Evidence**
@@ -1066,7 +1067,7 @@ credentials are required.
 
 - Partial/failed runs do not advance absence.
 - A canonical job remains active while any enabled active source remains.
-- Stale/closed state and 30-day source retention are reflected without deleting
+- Stale/closed state and 60-day source retention are reflected without deleting
   provenance prematurely.
 - Provider suspension hides source-only jobs without mass-closing or deleting
   retained source records.
@@ -1131,7 +1132,8 @@ credentials are required.
 **Expected result**
 
 - Canonical state reflects active, stale, and closed source evidence.
-- Closure does not erase source history before the retention policy allows it.
+- Closure does not erase source history before the 60-day retention policy
+  allows it.
 
 **Evidence**
 
@@ -3147,6 +3149,116 @@ credentials are required.
   public API default, tell users to provide or explicitly create one local
   CV/profile, and describe evidence-based field-by-field answer preparation
   while leaving browser entry and final submission to the user.
+
+### ACC-RETENTION-001 — Successful ingestion removes retired catalog data at 60 days
+
+**Priority:** Critical<br>
+**Automation:** Vitest integration test<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- A migrated D1 catalog contains an active source record, a closed source
+  record, canonical provenance, a dedupe decision, and completed ingestion
+  history.
+- The scheduled catalog Workflow is available.
+
+**Steps**
+
+1. Run a successful ingestion cycle at a controlled timestamp.
+2. Seed or retain a closed source record whose `closed_at` is exactly 60 days
+   before the cycle timestamp, plus a closed record newer than the boundary.
+3. Allow the post-finalization retention step to run.
+4. Inspect source records, canonical jobs/provenance, dedupe rows, ingestion
+   cycles/runs, and the catalog cache epoch.
+
+**Expected result**
+
+- The record at or beyond the 60-day boundary and its retired canonical data
+  are removed.
+- A newer closed record and all active/suspended source records remain.
+- Remaining canonical jobs are rebuilt with valid provenance, old completed
+  ingestion history is pruned, and the cache epoch changes when public catalog
+  data changes.
+- No raw payload or source description is written to cleanup output.
+
+**Evidence**
+
+- `src/ingestion/d1-catalog.ts`, `src/ingestion/workflow.ts`, and the targeted
+  D1 integration test.
+
+**Last result**
+
+- Passed 2026-08-04. The D1 integration test removed the record exactly at
+  the inclusive 60-day boundary, dropped retired dedupe decisions safely,
+  pruned the completed cycle, rebuilt the remaining canonical jobs, rotated
+  the cache epoch, and left a newer closed record. A repeated cleanup was
+  idempotent.
+
+### ACC-RETENTION-002 — Cleanup is safe for partial/failing fetches and repeatable
+
+**Priority:** High<br>
+**Automation:** Vitest integration test<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The catalog contains a retired record beyond the 60-day boundary and a
+  provider can produce partial or failed observations.
+
+**Steps**
+
+1. Run a partial or failed ingestion cycle.
+2. Inspect the retired record and retention history.
+3. Run the next successful cycle and allow cleanup to execute.
+4. Repeat cleanup with the same timestamp or an empty eligible set.
+
+**Expected result**
+
+- Partial and failed cycles do not advance absence or retention deletion.
+- A later successful cycle removes the eligible retired data exactly once.
+- Repeating cleanup is idempotent and does not remove active or suspended
+  provider records or produce duplicate canonical jobs.
+
+**Evidence**
+
+- `tests/unit/workflow-config.test.ts`,
+  `tests/integration/catalog-engine.test.ts`, and the D1 retention integration
+  test.
+
+**Last result**
+
+- Passed 2026-08-04. The executed retention decision helper permits cleanup
+  only for `successful` cycles and rejects `partial`/`failed` cycles; the
+  lifecycle suite preserved missing/retention state for partial and failed
+  observations, and the D1 cleanup repeated without deleting active data.
+
+### ACC-OPS-015 — 60-day scheduled cleanup release gate
+
+**Priority:** Critical<br>
+**Automation:** CLI, Vitest, migration checks, production build, Wrangler,
+and live D1/HTTP smoke<br>
+**Status:** Pending
+
+**Expected result**
+
+- Focused retention tests pass, including the exact 60-day boundary and
+  foreign-key-safe canonical rebuild.
+- Formatting, lint, strict TypeScript, the full Vitest suite, migration checks,
+  production build, Cloudflare dry run, and `git diff --check` pass.
+- The pushed validated commit is deployed to the production Worker with the
+  existing `0 */12 * * *` Workflow schedule and `SOURCE_CLOSED_RETENTION_DAYS=60`.
+- Live readback confirms the production Worker and Workflow configuration,
+  public endpoints remain healthy, and no task-owned process remains.
+
+**Evidence**
+
+- `TASKS.md`, `ACCEPTANCE.md`, `WORKLOG.md`, command output, Wrangler deploy
+  output, Workflow metadata, bounded D1 readback, and production HTTP smoke.
+
+**Last result**
+
+- Not run.
 
 ### ACC-OPS-014 — Browser-comment refinement release gate
 

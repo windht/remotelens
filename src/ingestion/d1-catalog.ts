@@ -253,13 +253,6 @@ export async function persistProviderObservation(
         ...(seenKeys.length > 0 ? [JSON.stringify(seenKeys)] : []),
       )
       .run()
-    await db
-      .prepare(
-        `DELETE FROM source_records
-         WHERE provider = ? AND status = 'closed' AND closed_at <= ?`,
-      )
-      .bind(input.provider, input.now - 30 * DAYS)
-      .run()
   }
 
   const errorMessage = input.errorMessage
@@ -355,6 +348,111 @@ export async function persistProviderObservation(
   ])
 
   return summary
+}
+
+export type CatalogCleanupSummary = {
+  cacheEpoch?: string
+  cutoff: number
+  deletedIngestionCycles: number
+  deletedLocks: number
+  deletedSourceRecords: number
+}
+
+export function shouldRunCatalogRetention(status: string) {
+  return status === 'successful'
+}
+
+export async function cleanupCatalogRetention(
+  db: D1Database,
+  input: { now: number; retentionDays: number },
+): Promise<CatalogCleanupSummary> {
+  const cutoff = input.now - input.retentionDays * DAYS
+  const retiredSource = await db
+    .prepare(
+      `SELECT 1 AS present
+       FROM source_records
+       WHERE status = 'closed' AND closed_at IS NOT NULL AND closed_at <= ?`,
+    )
+    .bind(cutoff)
+    .first<{ present: number }>()
+
+  let cacheEpoch: string | undefined
+  let deletedSourceRecords = 0
+  if (retiredSource) {
+    // Canonical provenance uses restrict semantics. Drop the derived jobs first,
+    // remove decisions for retired source pairs, then delete the source rows.
+    // The rebuild below restores the remaining canonical catalog deterministically.
+    await db.prepare('DELETE FROM jobs').run()
+    await db
+      .prepare(
+        `DELETE FROM dedupe_decisions
+         WHERE candidate_id IN (
+           SELECT candidate.id
+           FROM dedupe_candidates AS candidate
+           JOIN source_records AS retired
+             ON retired.id = candidate.left_source_record_id
+             OR retired.id = candidate.right_source_record_id
+           WHERE retired.status = 'closed'
+             AND retired.closed_at IS NOT NULL
+             AND retired.closed_at <= ?
+         )`,
+      )
+      .bind(cutoff)
+      .run()
+    const deleted = await db
+      .prepare(
+        `DELETE FROM source_records
+         WHERE status = 'closed' AND closed_at IS NOT NULL AND closed_at <= ?`,
+      )
+      .bind(cutoff)
+      .run()
+    deletedSourceRecords = deleted.meta.changes
+
+    await rebuildCanonicalJobs(db, input.now)
+    const current = await db
+      .prepare("SELECT cache_epoch FROM catalog_state WHERE key = 'live'")
+      .first<{ cache_epoch: string }>()
+    if (!current) throw new Error('catalog_state live row is missing')
+    cacheEpoch = `epoch:${(
+      await sha256(
+        `${current.cache_epoch}:retention:${input.now}:${deletedSourceRecords}`,
+      )
+    ).slice(0, 24)}`
+    await db
+      .prepare(
+        `UPDATE catalog_state
+         SET cache_epoch = ?, updated_at = ?
+         WHERE key = 'live'`,
+      )
+      .bind(cacheEpoch, input.now)
+      .run()
+  }
+
+  const deletedIngestionCycles = (
+    await db
+      .prepare(
+        `DELETE FROM ingestion_cycles
+         WHERE status != 'running'
+           AND finished_at IS NOT NULL
+           AND finished_at <= ?`,
+      )
+      .bind(cutoff)
+      .run()
+  ).meta.changes
+  const deletedLocks = (
+    await db
+      .prepare('DELETE FROM ingestion_locks WHERE expires_at <= ?')
+      .bind(input.now)
+      .run()
+  ).meta.changes
+
+  return {
+    ...(cacheEpoch ? { cacheEpoch } : {}),
+    cutoff,
+    deletedIngestionCycles,
+    deletedLocks,
+    deletedSourceRecords,
+  }
 }
 
 export async function createDedupeCandidates(db: D1Database, now: number) {
