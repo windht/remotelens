@@ -392,7 +392,7 @@ are complete.
     Workflow, preserve failed/partial stale-state safeguards, rebuild remaining
     canonical jobs, and rotate the catalog cache epoch when public data changes.
   - Acceptance: `ACC-RETENTION-001`, `ACC-WORKFLOW-001`, `ACC-STALE-001`
-- [ ] **P15-003 — Pass the retention release gate and deploy**
+- [x] **P15-003 — Pass the retention release gate and deploy**
   - Run focused retention/migration checks, the full validation suite, the
     production dry run, push the validated commit, deploy it, and verify the
     live Worker schedule and bounded cleanup readback.

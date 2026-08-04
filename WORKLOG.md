@@ -3,9 +3,9 @@
 ## Current status
 
 **Phase:** Phase 15 — Scheduled 60-day catalog cleanup<br>
-**Current task:** P15-003 — retention release gate, push, deploy, and live verification<br>
-**Current acceptance:** ACC-OPS-015 — pending production push/deploy and live readback<br>
-**Goal status:** In progress
+**Current task:** None — P15-001 through P15-003 are complete<br>
+**Current acceptance:** None — ACC-RETENTION-001, ACC-RETENTION-002, and ACC-OPS-015 passed<br>
+**Goal status:** Complete
 
 ### Scheduled 60-day catalog cleanup started — 2026-08-04
 
@@ -42,7 +42,31 @@ tests/integration/catalog-engine.test.ts tests/unit/workflow-config.test.ts`
 - `git diff --check` — Passed. The task-owned Playwright preview exited; ports
   4173 and 8787 are not listening and no task-owned browser/preview process
   remains.
-- Production push/deployment and live Workflow/D1 readback remain pending.
+
+### Retention release pushed, deployed, and live-verified — 2026-08-04
+
+- Commit `b0586b2ec39f045e5f83fd74580502208cad02d2` was pushed to
+  `origin/main` and deployed with the account pinned to Hutong531.
+- Production Worker version `7f7717ea-f08b-4632-b012-cea9008e124b` is serving
+  `remotelens.co` and `remotelens.hutong531.workers.dev`; the deploy output
+  resolved `SOURCE_CLOSED_RETENTION_DAYS="60"`, the live D1, and
+  `remotelens-catalog-ingestion`.
+- `wrangler workflows list/describe` — Passed; the existing
+  `CatalogIngestionWorkflow` is registered and modified by this deployment.
+- Authenticated production Workflow trigger — Passed;
+  `df7b59ff-249b-4c91-a068-8e8c0cb51bae` completed JS Guru, Remote OK, WWR,
+  finalization, and `clean up retired catalog data-1`. Cleanup reported
+  `deletedSourceRecords=0`, `deletedIngestionCycles=0`, and `deletedLocks=0`
+  because no rows were beyond the 60-day boundary at run time.
+- Production D1 readback — Passed after the run: source records were 201
+  active, 8 missing, and 2 closed; ingestion cycles were 10 successful, 2
+  partial, and 1 failed; the live cache epoch was
+  `epoch:ca8ce8e7bf448674e53219af`.
+- Production HTTP smoke — Passed: `remotelens.co/`, `/jobs`, and
+  `/api/v1/meta`, plus the workers.dev root, returned HTTP 200. `/jobs`
+  returned the expected ISR cache policy and RemoteLens render-mode header.
+- Final process cleanup — Passed; no task-owned preview, browser, Wrangler,
+  Workerd, or listening port 4173/8787 remains.
 
 ### Browser-comment refinement started — 2026-08-01
 
@@ -734,10 +758,10 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
   responsive, accessibility, and documentation cases passed.
 - All Phase 5 package, installation, explainable matching, and prompt-injection
   safety cases passed.
-- Phase 15 local acceptance passed: the exact inclusive 60-day boundary,
+- Phase 15 acceptance passed: the exact inclusive 60-day boundary,
   foreign-key-safe canonical rebuild, completed-history pruning, successful-only
-  execution, and idempotent repeat were verified. `ACC-OPS-015` remains pending
-  until the validated commit is pushed, deployed, and live-verified.
+  execution, idempotent repeat, pushed commit, production deployment, live
+  Workflow cleanup step, D1 readback, and HTTP smoke were verified.
 - All Phase 6 acceptance cases passed: production D1, deployment and schedule,
   authenticated bootstrap, public reads, refreshed provenance, runbook, and
   non-destructive WWR suspension/recovery.
@@ -820,7 +844,8 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 
 ## Next
 
-- Complete P15-003 push, deploy, and live Worker/D1 verification.
+- None. Phase 15 implementation, acceptance, push, deployment, and live
+  verification are complete.
 
 ## Known risks
 
@@ -847,5 +872,4 @@ Executed 2026-07-30 from `16:15:56Z` to `16:16:00Z`.
 - Phase 9 has no public-release blocker. The local-only unreachable Git blob is
   not reachable from the published repository and was not transferred.
 - Phase 13 has no blocker.
-- Phase 15 has no implementation blocker; production push, deployment, and
-  live scheduled-Workflow readback are still outstanding.
+- Phase 15 has no blocker.

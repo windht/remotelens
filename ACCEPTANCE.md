@@ -3238,7 +3238,7 @@ credentials are required.
 **Priority:** Critical<br>
 **Automation:** CLI, Vitest, migration checks, production build, Wrangler,
 and live D1/HTTP smoke<br>
-**Status:** Pending
+**Status:** Passed
 
 **Expected result**
 
@@ -3258,7 +3258,15 @@ and live D1/HTTP smoke<br>
 
 **Last result**
 
-- Not run.
+- Passed 2026-08-04. Commit
+  `b0586b2ec39f045e5f83fd74580502208cad02d2` was pushed to `origin/main` and
+  deployed as Worker version `7f7717ea-f08b-4632-b012-cea9008e124b`. The
+  production Workflow instance `df7b59ff-249b-4c91-a068-8e8c0cb51bae`
+  completed successfully through `clean up retired catalog data-1`; its
+  bounded cleanup output reported zero eligible deletions. Production D1
+  readback and HTTP probes passed, including `/`, `/jobs`, `/api/v1/meta`,
+  workers.dev, the 60-day binding, and the existing 12-hour Workflow schedule.
+  No task-owned process remained.
 
 ### ACC-OPS-014 — Browser-comment refinement release gate
 
