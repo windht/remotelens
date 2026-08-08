@@ -24,16 +24,24 @@ describeLive('live D1 catalog', () => {
 
     const meta = await request.get('/api/v1/meta')
     expect(meta.ok()).toBe(true)
-    await expect(meta.json()).resolves.toMatchObject({
+    const metaBody = (await meta.json()) as {
       data: {
-        cache_epoch: 'epoch:live-proof',
-        providers: [
-          { enabled: true, key: 'remote_ok', status: 'healthy' },
-          { enabled: true, key: 'wwr', status: 'healthy' },
-        ],
-        total_active_jobs: 1,
-      },
-    })
+        cache_epoch: string
+        providers: Array<{ enabled: boolean; key: string; status: string }>
+        total_active_jobs: number
+      }
+    }
+    expect(metaBody.data.cache_epoch).toBe('epoch:live-proof')
+    expect(metaBody.data.total_active_jobs).toBe(1)
+    expect(metaBody.data.providers).toEqual(
+      expect.arrayContaining([
+        { enabled: true, key: 'remote_ok', status: 'healthy' },
+        { enabled: true, key: 'wwr', status: 'healthy' },
+        { enabled: true, key: 'remotejobs', status: 'never_run' },
+        { enabled: true, key: 'remotive', status: 'never_run' },
+        { enabled: true, key: 'jobicy', status: 'never_run' },
+      ]),
+    )
 
     await page.goto(`/jobs/${liveSlug}`)
     await expect(

@@ -147,8 +147,9 @@ function HomePage() {
         <div id="methodology">
           <p className="eyebrow">The small print</p>
           <p>
-            RemoteLens indexes JS Guru Jobs, Remote OK, and four approved We
-            Work Remotely programming feeds. Exact source evidence stays
+            RemoteLens indexes JS Guru Jobs, Remote OK, four approved We Work
+            Remotely programming feeds, RemoteJobs.org, Remotive software
+            development, and Jobicy engineering. Exact source evidence stays
             attached; ambiguous facts stay unknown.
           </p>
         </div>

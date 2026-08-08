@@ -68,8 +68,19 @@ See the [API guide](https://remotelens.co/api) or the
 
 RemoteLens supports attributed developer jobs from
 [JS Guru Jobs](https://jsgurujobs.com/jobs), [Remote OK](https://remoteok.com/),
-and the approved programming feeds from
-[We Work Remotely](https://weworkremotely.com/).
+the approved programming feeds from
+[We Work Remotely](https://weworkremotely.com/), the public
+[RemoteJobs.org API](https://remotejobs.org/api-access), the
+[Remotive software-development RSS feed](https://remotive.com/remote-jobs/feed/software-development),
+and the [Jobicy API](https://jobicy.com/jobs-rss-feed).
+
+RemoteJobs.org, Remotive, and Jobicy are fetched only through these official
+API/RSS endpoints. RemoteLens keeps their source attribution and original
+listing URLs, does not fetch detail pages, and treats blocked or partial
+responses as non-destructive provider failures. Jobicy requires direct credit
+and application links to use the original URL returned by its API;
+RemoteJobs.org is an aggregator destination and is not presented as a verified
+employer ATS.
 
 Provider content is treated as untrusted data. RemoteLens preserves source
 links and attribution, exposes uncertainty instead of inventing facts, and

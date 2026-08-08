@@ -14,23 +14,30 @@ async function record(
   sourceKey: string,
   overrides: Partial<NormalizedSourceRecord> = {},
 ): Promise<NormalizedSourceRecord> {
+  const attributions: Record<Provider, NormalizedSourceRecord['attribution']> =
+    {
+      jsguru: 'JS Guru Jobs',
+      remote_ok: 'Remote OK',
+      wwr: 'We Work Remotely',
+      remotejobs: 'RemoteJobs.org',
+      remotive: 'Remotive',
+      jobicy: 'Jobicy',
+    }
+  const bases: Record<Provider, string> = {
+    jsguru: 'https://jsgurujobs.com/jobs',
+    remote_ok: 'https://remoteok.com/remote-jobs',
+    wwr: 'https://weworkremotely.com/remote-jobs',
+    remotejobs: 'https://remotejobs.org/remote-jobs',
+    remotive: 'https://remotive.com/remote-jobs/software-dev',
+    jobicy: 'https://jobicy.com/jobs',
+  }
   const base = {
-    attribution:
-      provider === 'jsguru'
-        ? ('JS Guru Jobs' as const)
-        : provider === 'remote_ok'
-          ? ('Remote OK' as const)
-          : ('We Work Remotely' as const),
+    attribution: attributions[provider],
     company: 'Kumo Systems',
     descriptionHtml: '<p>Safe description.</p>',
     descriptionText: 'Safe description.',
     labels: [],
-    listingUrl:
-      provider === 'jsguru'
-        ? `https://jsgurujobs.com/jobs/${sourceKey}`
-        : provider === 'remote_ok'
-          ? `https://remoteok.com/remote-jobs/${sourceKey}`
-          : `https://weworkremotely.com/remote-jobs/${sourceKey}`,
+    listingUrl: `${bases[provider]}/${sourceKey}`,
     provider,
     rawTitle: 'Senior Backend Engineer',
     sourceKey,
@@ -138,6 +145,42 @@ describe('fixture-driven catalog ingestion', () => {
     })
     expect(catalog.health.get('jsguru')?.status).toBe('suspended')
     expect(catalog.records.get('jsguru:551')?.status).toBe('active')
+  })
+
+  it('routes RemoteJobs.org, Remotive, and Jobicy through independent lifecycle state', async () => {
+    const catalog = new MemoryCatalog()
+    const remoteJobs = await record('remotejobs', 'rj-101')
+    const remotive = await record('remotive', 'remotive-101')
+    const jobicy = await record('jobicy', '150101')
+
+    const first = await catalog.runCycle({
+      cycleKey: 'official-providers-seed',
+      now: 1_000,
+      observations: [
+        observation('remotejobs', [remoteJobs]),
+        observation('remotive', [remotive]),
+        observation('jobicy', [jobicy]),
+      ],
+    })
+    expect(first.status).toBe('successful')
+    expect(catalog.records).toHaveLength(3)
+
+    const partial = await catalog.runCycle({
+      cycleKey: 'official-providers-partial',
+      now: 2_000,
+      observations: [
+        observation('remotejobs', [], {
+          errorCode: 'page_failed',
+          status: 'partial',
+        }),
+        observation('remotive', [remotive]),
+        observation('jobicy', [], { enabled: false }),
+      ],
+    })
+    expect(partial.status).toBe('partial')
+    expect(catalog.records.get('remotejobs:rj-101')?.missingCount).toBe(0)
+    expect(catalog.records.get('jobicy:150101')?.status).toBe('active')
+    expect(catalog.health.get('jobicy')?.status).toBe('suspended')
   })
 
   it('rejects duplicate active claims and allows only expired lock reclaim', () => {

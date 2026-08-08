@@ -1,7 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { JOBICY_API_URL } from '../../src/ingestion/adapters/jobicy'
 import { JSGURU_PAGES } from '../../src/ingestion/adapters/jsguru'
+import {
+  REMOTEJOBS_MAX_PAGES,
+  REMOTEJOBS_URL,
+} from '../../src/ingestion/adapters/remotejobs'
+import { REMOTIVE_FEED_URL } from '../../src/ingestion/adapters/remotive'
 import { WWR_FEEDS } from '../../src/ingestion/adapters/wwr'
 import { shouldRunCatalogRetention } from '../../src/ingestion/d1-catalog'
 
@@ -51,5 +57,27 @@ describe('scheduled ingestion configuration', () => {
   it('keeps the JS Guru Jobs page allow-list closed to the first three pages', () => {
     expect(JSGURU_PAGES).toHaveLength(3)
     expect(JSGURU_PAGES.at(-1)).toBe('https://jsgurujobs.com/jobs?page=3')
+  })
+
+  it('configures the three official providers as independent bounded runs', () => {
+    expect(REMOTEJOBS_URL).toContain(
+      'https://remotejobs.org/api/v1/jobs?category=programming',
+    )
+    expect(REMOTEJOBS_MAX_PAGES).toBeGreaterThan(0)
+    expect(REMOTIVE_FEED_URL).toBe(
+      'https://remotive.com/remote-jobs/feed/software-development',
+    )
+    expect(JOBICY_API_URL).toContain(
+      'https://jobicy.com/api/v2/remote-jobs?count=100',
+    )
+    for (const provider of ['remotejobs', 'remotive', 'jobicy']) {
+      expect(workflowSource).toContain(`provider: '${provider}'`)
+      expect(workflowSource).toContain(
+        `ENABLE_SOURCE_${provider.toUpperCase()}`,
+      )
+    }
+    expect(workflowSource).toContain("'ingest RemoteJobs.org'")
+    expect(workflowSource).toContain("'ingest Remotive software development'")
+    expect(workflowSource).toContain("'ingest Jobicy engineering'")
   })
 })

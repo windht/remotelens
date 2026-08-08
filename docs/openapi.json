@@ -141,7 +141,16 @@
         "explode": true,
         "schema": {
           "type": "array",
-          "items": { "enum": ["jsguru", "remote_ok", "wwr"] }
+          "items": {
+            "enum": [
+              "jsguru",
+              "remote_ok",
+              "wwr",
+              "remotejobs",
+              "remotive",
+              "jobicy"
+            ]
+          }
         }
       },
       "company": {

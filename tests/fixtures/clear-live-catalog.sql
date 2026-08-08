@@ -21,6 +21,12 @@ SET enabled = 1, status = 'never_run', last_attempt_at = NULL,
     last_error_code = NULL, last_error_message = NULL,
     consecutive_failures = 0, active_count = 0, updated_at = 0
 WHERE provider IN ('remote_ok', 'wwr');
+UPDATE source_health
+SET enabled = 1, status = 'never_run', last_attempt_at = NULL,
+    last_successful_at = NULL, last_complete_at = NULL,
+    last_error_code = NULL, last_error_message = NULL,
+    consecutive_failures = 0, active_count = 0, updated_at = 0
+WHERE provider IN ('remotejobs', 'remotive', 'jobicy');
 UPDATE catalog_state
 SET cache_epoch = 'initial', updated_at = 0
 WHERE key = 'live';

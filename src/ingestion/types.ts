@@ -1,4 +1,11 @@
-export const PROVIDERS = ['jsguru', 'remote_ok', 'wwr'] as const
+export const PROVIDERS = [
+  'jsguru',
+  'remote_ok',
+  'wwr',
+  'remotejobs',
+  'remotive',
+  'jobicy',
+] as const
 export type Provider = (typeof PROVIDERS)[number]
 
 export type SourceLabel = {
@@ -8,7 +15,13 @@ export type SourceLabel = {
 }
 
 export type NormalizedSourceRecord = {
-  attribution: 'JS Guru Jobs' | 'Remote OK' | 'We Work Remotely'
+  attribution:
+    | 'JS Guru Jobs'
+    | 'Remote OK'
+    | 'We Work Remotely'
+    | 'RemoteJobs.org'
+    | 'Remotive'
+    | 'Jobicy'
   company: string
   descriptionHtml: string
   descriptionText: string

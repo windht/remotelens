@@ -1,5 +1,6 @@
 import type { JobFixture, SourceKey } from '~/data/job-fixtures'
 import { JOB_FIXTURES } from '~/data/job-fixtures'
+import { SOURCE_KEYS } from '~/lib/job-search'
 import {
   normalizeCompany,
   sanitizeDescription,
@@ -816,7 +817,7 @@ function fixtureMeta(): CatalogMeta {
   return {
     cache_epoch: 'fixture',
     last_completed_cycle: null,
-    providers: (['jsguru', 'remote_ok', 'wwr'] as const).map((key) => ({
+    providers: SOURCE_KEYS.map((key) => ({
       active_count: JOB_FIXTURES.filter(
         (job) =>
           job.status === 'active' &&

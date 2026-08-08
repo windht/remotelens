@@ -138,7 +138,9 @@ policy; use a disposable local D1 database for tests.
 ## Provider suspension and recovery
 
 Each provider has one independent enablement variable:
-`ENABLE_SOURCE_JSGURU`, `ENABLE_SOURCE_REMOTE_OK`, and `ENABLE_SOURCE_WWR`.
+`ENABLE_SOURCE_JSGURU`, `ENABLE_SOURCE_REMOTE_OK`, `ENABLE_SOURCE_WWR`,
+`ENABLE_SOURCE_REMOTEJOBS`, `ENABLE_SOURCE_REMOTIVE`, and
+`ENABLE_SOURCE_JOBICY`.
 Suspend only the named provider by changing its variable to `false` in the
 reviewed Wrangler configuration and deploying that reviewed version. This
 withholds its source-only jobs while retaining source records. It does not

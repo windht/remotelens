@@ -20,6 +20,14 @@ describe('parseJobSearch', () => {
     })
   })
 
+  it('accepts each newly configured official provider key', () => {
+    expect(
+      parseJobSearch({
+        source: ['remotejobs', 'remotive', 'jobicy'],
+      }).source,
+    ).toEqual(['remotejobs', 'remotive', 'jobicy'])
+  })
+
   it.each([
     [{ country: 'JAPAN' }, 'country'],
     [{ source: 'unknown' }, 'source'],

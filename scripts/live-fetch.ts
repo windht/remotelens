@@ -2,7 +2,13 @@ import {
   fetchJsguruPages,
   JSGURU_PAGES,
 } from '../src/ingestion/adapters/jsguru'
+import { jobicyAdapter } from '../src/ingestion/adapters/jobicy'
+import {
+  fetchRemoteJobs,
+  REMOTEJOBS_MAX_PAGES,
+} from '../src/ingestion/adapters/remotejobs'
 import { remoteOkAdapter } from '../src/ingestion/adapters/remote-ok'
+import { remotiveAdapter } from '../src/ingestion/adapters/remotive'
 import { WWR_FEEDS, fetchWwrFeeds } from '../src/ingestion/adapters/wwr'
 import { boundedError } from '../src/ingestion/normalization'
 
@@ -32,6 +38,7 @@ const output: Record<string, unknown> = {
   startedAt,
   policy: {
     configuredJsguruPages: JSGURU_PAGES.length,
+    configuredRemoteJobsMaxPages: REMOTEJOBS_MAX_PAGES,
     persistRawPayloads: false,
     configuredWwrFeeds: WWR_FEEDS.length,
   },
@@ -86,6 +93,51 @@ try {
   }
 } catch (error) {
   output.wwr = {
+    error: boundedError(error),
+  }
+}
+
+try {
+  const remoteJobs = await fetchRemoteJobs(observedFetch)
+  output.remotejobs = {
+    admittedCount: remoteJobs.parsed?.records.length ?? 0,
+    completedPageCount: remoteJobs.successfulPageCount,
+    errors: remoteJobs.errors.map((error) => boundedError(error, 200)),
+    fetchedCount: remoteJobs.parsed?.fetchedCount ?? 0,
+    hasMore: remoteJobs.hasMore,
+    rejectedCount: remoteJobs.parsed?.rejectedCount ?? 0,
+    responseHash: remoteJobs.parsed?.responseHash ?? null,
+  }
+} catch (error) {
+  output.remotejobs = {
+    error: boundedError(error),
+  }
+}
+
+try {
+  const remotive = await remotiveAdapter.fetchAndParse(observedFetch)
+  output.remotive = {
+    admittedCount: remotive.records.length,
+    fetchedCount: remotive.fetchedCount,
+    rejectedCount: remotive.rejectedCount,
+    responseHash: remotive.responseHash,
+  }
+} catch (error) {
+  output.remotive = {
+    error: boundedError(error),
+  }
+}
+
+try {
+  const jobicy = await jobicyAdapter.fetchAndParse(observedFetch)
+  output.jobicy = {
+    admittedCount: jobicy.records.length,
+    fetchedCount: jobicy.fetchedCount,
+    rejectedCount: jobicy.rejectedCount,
+    responseHash: jobicy.responseHash,
+  }
+} catch (error) {
+  output.jobicy = {
     error: boundedError(error),
   }
 }

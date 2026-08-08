@@ -1,9 +1,15 @@
 import type { CatalogMeta } from '~/api/catalog'
 
 function providerLabel(key: CatalogMeta['providers'][number]['key']) {
-  if (key === 'wwr') return 'We Work Remotely'
-  if (key === 'jsguru') return 'JS Guru Jobs'
-  return 'Remote OK'
+  const labels: Record<CatalogMeta['providers'][number]['key'], string> = {
+    jsguru: 'JS Guru Jobs',
+    remote_ok: 'Remote OK',
+    wwr: 'We Work Remotely',
+    remotejobs: 'RemoteJobs.org',
+    remotive: 'Remotive',
+    jobicy: 'Jobicy',
+  }
+  return labels[key]
 }
 
 function timestamp(value: string | null) {

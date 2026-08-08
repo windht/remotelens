@@ -13,6 +13,18 @@ const SOURCE_MARKS: Record<SourceKey, { label: string; src: string }> = {
     label: 'We Work Remotely',
     src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAEKADAAQAAAABAAAAEAAAAAA0VXHyAAABRUlEQVQ4EdWST2qDQBTGv2jJH2IkokgRSTA9QC6QVU7RU2TbK+Q0BXeeoJtsCokomEXIMhowwfwRjdb3UkqhO7vKwJsZmPf93nxvpgGgrKL2EGorv4UPCnhuNmF1OmhUNp7ISq/Xw2g0wul0Qp7nUFUVWZZhv99DFEU+b7VaMAwD7nKJt3YbLxXg1XXvgH6/j9lsxqLL5QJZlhkURRGaVTUS00rgw+GAj/kcn7sdktvtDqDEoigwHo9Z6DgOC6bTKdI0xWq1wvF4hSRJeK/y4zjmd+BXoKpEpkqKomC73XJomoZut8tnlDOZTLDZbH7EROAe0Mb3fei6DrJDSYIgwPM8JEmC9XqNwWAA27YxHA7RqfwTkAY1kn8iNYgq0i2CIGBLlmWhLEuEYcj+z+czTNPEYrH4C2BcjelBf+Jvp/+28AWa0Yo5OSN3LAAAAABJRU5ErkJggg==',
   },
+  remotejobs: {
+    label: 'RemoteJobs.org',
+    src: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 18 18%22%3E%3Crect width=%2218%22 height=%2218%22 rx=%223%22 fill=%22%234B5563%22/%3E%3Ctext x=%229%22 y=%2212.5%22 fill=%22white%22 font-size=%227%22 font-family=%22Arial,sans-serif%22 text-anchor=%22middle%22%3ER%3C/text%3E%3C/svg%3E',
+  },
+  remotive: {
+    label: 'Remotive',
+    src: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 18 18%22%3E%3Crect width=%2218%22 height=%2218%22 rx=%223%22 fill=%22%23D97706%22/%3E%3Ctext x=%229%22 y=%2212.5%22 fill=%22white%22 font-size=%227%22 font-family=%22Arial,sans-serif%22 text-anchor=%22middle%22%3ER%3C/text%3E%3C/svg%3E',
+  },
+  jobicy: {
+    label: 'Jobicy',
+    src: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 18 18%22%3E%3Crect width=%2218%22 height=%2218%22 rx=%223%22 fill=%22%237C3AED%22/%3E%3Ctext x=%229%22 y=%2212.5%22 fill=%22white%22 font-size=%227%22 font-family=%22Arial,sans-serif%22 text-anchor=%22middle%22%3EJ%3C/text%3E%3C/svg%3E',
+  },
 }
 
 export function SourceMark({ provider }: { provider: SourceKey }) {

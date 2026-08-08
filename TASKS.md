@@ -398,6 +398,50 @@ are complete.
     live Worker schedule and bounded cleanup readback.
   - Acceptance: `ACC-OPS-015`
 
+## Phase 16 — Official RemoteJobs.org, Remotive, and Jobicy sources
+
+- [x] **P16-001 — Define and document the three official provider contracts**
+  - Add independent provider keys, source-policy entries, attribution rules,
+    official endpoint boundaries, and safe partial/failure semantics for
+    RemoteJobs.org, Remotive software-development RSS, and Jobicy engineering
+    API results.
+  - Acceptance: `ACC-REMOTEJOBS-001`, `ACC-REMOTIVE-001`, `ACC-JOBICY-001`
+- [x] **P16-002 — Implement and test the RemoteJobs.org adapter**
+  - Use the official programming-category JSON API, bounded `limit`/`offset`
+    pagination, source-local identity, sanitized descriptions, and explicit
+    source attribution without treating the aggregator detail page as an
+    employer application URL.
+  - Acceptance: `ACC-REMOTEJOBS-001`, `ACC-REMOTEJOBS-002`
+- [x] **P16-003 — Implement and test the Remotive software-development RSS adapter**
+  - Parse the user-specified official RSS feed, support single or repeated
+    items and CDATA/content fields, preserve the feed's software-development
+    boundary, and reject malformed records deterministically.
+  - Acceptance: `ACC-REMOTIVE-001`, `ACC-REMOTIVE-002`
+- [x] **P16-004 — Implement and test the Jobicy engineering API adapter**
+  - Use the official API with the engineering filter and bounded 100-result
+    response, normalize its array/scalar fields, retain the original Jobicy
+    listing URL, and keep required Jobicy attribution/application-routing
+    rules visible in documentation.
+  - Acceptance: `ACC-JOBICY-001`, `ACC-JOBICY-002`
+- [x] **P16-005 — Route all three providers through lifecycle and public surfaces**
+  - Add D1 migration state, independent flags, Workflow observations and
+    summaries, canonical priority, source filters, API taxonomy/meta, UI
+    attribution, and fixture metadata for all three providers.
+  - Acceptance: `ACC-SOURCES-003`, `ACC-API-003`, `ACC-WORKFLOW-003`
+- [x] **P16-006 — Pass the three-source validation and acceptance gate**
+  - Run adapter, migration, workflow, integration, formatting, lint, strict
+    typecheck, full tests, build, and diff hygiene checks; record any bounded
+    live-fetch result without deploying production.
+  - Acceptance: `ACC-OPS-016`
+- [ ] **P16-007 — Deploy and publish the three-source release**
+  - Review the production migration state, apply the new D1 migration if it is
+    pending, deploy the validated Worker and Workflow configuration, and verify
+    the canonical domain, public metadata, Workflow schedule, and bounded
+    aggregate provider health.
+  - Update the README and synchronized release trackers with the deployment
+    evidence, then commit and push the complete scoped change to GitHub.
+  - Acceptance: `ACC-OPS-017`
+
 ## Operator-directed Cloudflare setup
 
 - [x] **OPS-001 — Bind the project to the Hutong531 Cloudflare account and

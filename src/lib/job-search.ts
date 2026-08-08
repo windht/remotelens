@@ -1,6 +1,13 @@
 import { ISO_COUNTRY_CODES } from './countries'
 
-export const SOURCE_KEYS = ['jsguru', 'remote_ok', 'wwr'] as const
+export const SOURCE_KEYS = [
+  'jsguru',
+  'remote_ok',
+  'wwr',
+  'remotejobs',
+  'remotive',
+  'jobicy',
+] as const
 export const ROLE_FAMILIES = ['engineering'] as const
 export const EMPLOYMENT_TYPES = [
   'full_time',

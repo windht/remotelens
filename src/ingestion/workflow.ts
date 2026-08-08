@@ -3,8 +3,11 @@ import {
   type WorkflowEvent,
   type WorkflowStep,
 } from 'cloudflare:workers'
+import { fetchRemoteJobs, REMOTEJOBS_MAX_PAGES } from './adapters/remotejobs'
+import { jobicyAdapter } from './adapters/jobicy'
 import { fetchJsguruPages, JSGURU_PAGES } from './adapters/jsguru'
 import { remoteOkAdapter } from './adapters/remote-ok'
+import { remotiveAdapter } from './adapters/remotive'
 import { WWR_FEEDS, fetchWwrFeeds } from './adapters/wwr'
 import {
   claimCycle,
@@ -45,6 +48,13 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
             ? (['remote_ok'] as const)
             : []),
           ...(environment.ENABLE_SOURCE_WWR ? (['wwr'] as const) : []),
+          ...(environment.ENABLE_SOURCE_REMOTEJOBS
+            ? (['remotejobs'] as const)
+            : []),
+          ...(environment.ENABLE_SOURCE_REMOTIVE
+            ? (['remotive'] as const)
+            : []),
+          ...(environment.ENABLE_SOURCE_JOBICY ? (['jobicy'] as const) : []),
         ],
         lockTtlMilliseconds: environment.INGESTION_LOCK_TTL_SECONDS * 1_000,
         now,
@@ -223,6 +233,168 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
       },
     )
 
+    const remoteJobs = await step.do(
+      'ingest RemoteJobs.org',
+      {
+        retries: { backoff: 'exponential', delay: '10 seconds', limit: 2 },
+        timeout: '5 minutes',
+      },
+      async () => {
+        const now = Date.now()
+        if (!environment.ENABLE_SOURCE_REMOTEJOBS) {
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            fetchedCount: 0,
+            now,
+            provider: 'remotejobs',
+            records: [],
+            rejectedCount: 0,
+            status: 'suspended',
+          })
+        }
+        try {
+          const result = await fetchRemoteJobs(fetch)
+          const status =
+            result.parsed && !result.hasMore && result.errors.length === 0
+              ? 'successful'
+              : result.parsed
+                ? 'partial'
+                : 'failed'
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            ...(result.errors.length > 0
+              ? {
+                  errorCode: 'remotejobs_page_failed',
+                  errorMessage: boundedError(result.errors.join('; ')),
+                }
+              : status === 'partial'
+                ? {
+                    errorCode: 'remotejobs_page_bound_reached',
+                    errorMessage: boundedError(
+                      `RemoteJobs.org pagination reached the ${REMOTEJOBS_MAX_PAGES}-page safety bound`,
+                    ),
+                  }
+                : {}),
+            fetchedCount: result.parsed?.fetchedCount ?? 0,
+            now,
+            provider: 'remotejobs',
+            records: result.parsed?.records ?? [],
+            rejectedCount: result.parsed?.rejectedCount ?? 0,
+            ...(result.parsed
+              ? { responseHash: result.parsed.responseHash }
+              : {}),
+            status,
+          })
+        } catch (error) {
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            errorCode: 'remotejobs_fetch_failed',
+            errorMessage: boundedError(error),
+            fetchedCount: 0,
+            now,
+            provider: 'remotejobs',
+            records: [],
+            rejectedCount: 0,
+            status: 'failed',
+          })
+        }
+      },
+    )
+
+    const remotive = await step.do(
+      'ingest Remotive software development',
+      {
+        retries: { backoff: 'exponential', delay: '10 seconds', limit: 2 },
+        timeout: '2 minutes',
+      },
+      async () => {
+        const now = Date.now()
+        if (!environment.ENABLE_SOURCE_REMOTIVE) {
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            fetchedCount: 0,
+            now,
+            provider: 'remotive',
+            records: [],
+            rejectedCount: 0,
+            status: 'suspended',
+          })
+        }
+        try {
+          const parsed = await remotiveAdapter.fetchAndParse(fetch)
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            fetchedCount: parsed.fetchedCount,
+            now,
+            provider: 'remotive',
+            records: parsed.records,
+            rejectedCount: parsed.rejectedCount,
+            responseHash: parsed.responseHash,
+            status: 'successful',
+          })
+        } catch (error) {
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            errorCode: 'remotive_fetch_failed',
+            errorMessage: boundedError(error),
+            fetchedCount: 0,
+            now,
+            provider: 'remotive',
+            records: [],
+            rejectedCount: 0,
+            status: 'failed',
+          })
+        }
+      },
+    )
+
+    const jobicy = await step.do(
+      'ingest Jobicy engineering',
+      {
+        retries: { backoff: 'exponential', delay: '10 seconds', limit: 2 },
+        timeout: '2 minutes',
+      },
+      async () => {
+        const now = Date.now()
+        if (!environment.ENABLE_SOURCE_JOBICY) {
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            fetchedCount: 0,
+            now,
+            provider: 'jobicy',
+            records: [],
+            rejectedCount: 0,
+            status: 'suspended',
+          })
+        }
+        try {
+          const parsed = await jobicyAdapter.fetchAndParse(fetch)
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            fetchedCount: parsed.fetchedCount,
+            now,
+            provider: 'jobicy',
+            records: parsed.records,
+            rejectedCount: parsed.rejectedCount,
+            responseHash: parsed.responseHash,
+            status: 'successful',
+          })
+        } catch (error) {
+          return persistProviderObservation(this.env.DB, {
+            cycleId: claim.cycleId,
+            errorCode: 'jobicy_fetch_failed',
+            errorMessage: boundedError(error),
+            fetchedCount: 0,
+            now,
+            provider: 'jobicy',
+            records: [],
+            rejectedCount: 0,
+            status: 'failed',
+          })
+        }
+      },
+    )
+
     const finalized = await step.do('finalize ingestion cycle', async () =>
       finalizeCycle(this.env.DB, {
         cacheEpochBefore: claim.cacheEpochBefore,
@@ -240,7 +412,14 @@ export class CatalogIngestionWorkflow extends WorkflowEntrypoint<
           retryCount: environment.DEEPSEEK_SCHEMA_RETRY_COUNT,
         },
         semanticMaxPerRun: environment.SEMANTIC_DEDUPE_MAX_PER_RUN,
-        providerRuns: [jsguru, remoteOk, wwr] as ProviderRunSummary[],
+        providerRuns: [
+          jsguru,
+          remoteOk,
+          wwr,
+          remoteJobs,
+          remotive,
+          jobicy,
+        ] as ProviderRunSummary[],
       }),
     )
 

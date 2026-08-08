@@ -15,6 +15,12 @@ const canonicalMigrationPath = fileURLToPath(
 const jsguruMigrationPath = fileURLToPath(
   new URL('../../drizzle/migrations/0002_jsguru_provider.sql', import.meta.url),
 )
+const officialProvidersMigrationPath = fileURLToPath(
+  new URL(
+    '../../drizzle/migrations/0003_remotejobs_remotive_jobicy.sql',
+    import.meta.url,
+  ),
+)
 
 let database: DatabaseSync | undefined
 
@@ -255,5 +261,34 @@ describe('initial D1 migration', () => {
         .all()
         .map((row) => row.provider),
     ).toEqual(['jsguru', 'remote_ok', 'wwr'])
+  })
+
+  it('adds the official RemoteJobs.org, Remotive, and Jobicy health states idempotently', () => {
+    const db = migratedDatabase()
+    const jsguruMigration = readFileSync(
+      jsguruMigrationPath,
+      'utf8',
+    ).replaceAll('--> statement-breakpoint', '')
+    db.exec(jsguruMigration)
+    const migration = readFileSync(
+      officialProvidersMigrationPath,
+      'utf8',
+    ).replaceAll('--> statement-breakpoint', '')
+    db.exec(migration)
+    db.exec(migration)
+
+    expect(
+      db
+        .prepare('SELECT provider FROM source_health ORDER BY provider')
+        .all()
+        .map((row) => row.provider),
+    ).toEqual([
+      'jobicy',
+      'jsguru',
+      'remote_ok',
+      'remotejobs',
+      'remotive',
+      'wwr',
+    ])
   })
 })

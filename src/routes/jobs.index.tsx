@@ -88,9 +88,15 @@ const SENIORITY_OPTIONS = [
 const SOURCE_OPTIONS = [
   option('', 'Any provider'),
   ...SOURCE_KEYS.map((value) => {
-    if (value === 'wwr') return option(value, 'We Work Remotely')
-    if (value === 'jsguru') return option(value, 'JS Guru Jobs')
-    return option(value, 'Remote OK')
+    const labels: Record<(typeof SOURCE_KEYS)[number], string> = {
+      jsguru: 'JS Guru Jobs',
+      remote_ok: 'Remote OK',
+      wwr: 'We Work Remotely',
+      remotejobs: 'RemoteJobs.org',
+      remotive: 'Remotive',
+      jobicy: 'Jobicy',
+    }
+    return option(value, labels[value])
   }),
 ]
 const SORT_OPTIONS = [

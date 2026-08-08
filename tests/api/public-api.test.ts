@@ -155,14 +155,31 @@ describe('public API contract', () => {
     const taxonomyBody = z
       .object({ data: z.unknown() })
       .parse(await taxonomy.json())
-    expect(ApiTaxonomySchema.parse(taxonomyBody.data).role_families).toEqual([
-      'engineering',
+    const taxonomyData = ApiTaxonomySchema.parse(taxonomyBody.data)
+    expect(taxonomyData.role_families).toEqual(['engineering'])
+    expect(taxonomyData.sources).toEqual([
+      'jsguru',
+      'remote_ok',
+      'wwr',
+      'remotejobs',
+      'remotive',
+      'jobicy',
     ])
 
     const meta = await request('/api/v1/meta')
     expect(meta.status).toBe(200)
     const metaBody = z.object({ data: z.unknown() }).parse(await meta.json())
-    expect(ApiMetaSchema.parse(metaBody.data).providers).toHaveLength(3)
+    expect(ApiMetaSchema.parse(metaBody.data).providers).toHaveLength(6)
+
+    for (const source of ['remotejobs', 'remotive', 'jobicy']) {
+      const filtered = await request(`/api/v1/jobs?source=${source}`)
+      expect(filtered.status).toBe(200)
+      expect(
+        z
+          .object({ data: z.array(ApiJobSummarySchema) })
+          .parse(await filtered.json()).data,
+      ).toEqual([])
+    }
 
     const jsonFeed = await request('/feeds/jobs.json?limit=2')
     expect(jsonFeed.status).toBe(200)

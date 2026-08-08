@@ -3301,3 +3301,400 @@ and live D1/HTTP smoke<br>
   `ca464ac4-9bdb-4be8-88d1-9c7ae64e19f8`; canonical-domain HTTP and
   desktop/mobile Chromium smoke verified the changed API, Skill, and Index
   flows.
+
+## Phase 16 — Official RemoteJobs.org, Remotive, and Jobicy sources
+
+### ACC-REMOTEJOBS-001 — RemoteJobs.org programming API is bounded and attributable
+
+**Priority:** Critical<br>
+**Automation:** Vitest adapter test and source-policy review<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The RemoteJobs.org public API is reachable or its sanitized fixture is
+  available.
+
+**Steps**
+
+1. Parse a response from the official `api/v1/jobs` endpoint with the
+   `programming` category and `limit`/`offset` pagination.
+2. Inspect normalized records, source keys, listing URLs, descriptions,
+   labels, and the bounded response summary.
+3. Supply a response with `has_more: true` that reaches the page bound, then a
+   failed page response.
+
+**Expected result**
+
+- Only programming-category records are admitted.
+- The API ID is the stable identity, the original RemoteJobs.org listing URL
+  is retained, descriptions are sanitized, and attribution is
+  `RemoteJobs.org`.
+- RemoteJobs.org detail/apply links are not represented as verified employer or
+  ATS destinations.
+- Partial or failed fetches do not advance missing-job closure.
+
+**Evidence**
+
+- `src/ingestion/adapters/remotejobs.ts`, adapter fixtures/tests, and
+  `docs/source-policy.md`.
+
+**Last result**
+
+- Passed 2026-08-08. The adapter and source-policy review confirmed the
+  programming-category boundary, stable API identity, sanitized content,
+  RemoteJobs.org attribution, non-ATS routing boundary, and safe partial/failed
+  fetch semantics.
+
+### ACC-REMOTEJOBS-002 — RemoteJobs.org pagination and malformed records are deterministic
+
+**Priority:** High<br>
+**Automation:** Vitest adapter test<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- A fixture includes multiple pages, malformed items, missing optional fields,
+  and a duplicate source ID.
+
+**Steps**
+
+1. Parse the fixture through the adapter parser twice.
+2. Inspect fetched, rejected, admitted, and response-hash values.
+
+**Expected result**
+
+- Malformed records are rejected while valid records remain available.
+- Repeated parsing is deterministic and emits no duplicate source keys.
+
+**Evidence**
+
+- `tests/unit/adapters.test.ts` and `tests/fixtures/remotejobs.ts`.
+
+**Last result**
+
+- Passed 2026-08-08. The fixture parser rejected malformed/non-programming
+  rows, deduplicated repeated source IDs across pages, and produced a stable
+  response hash and normalized record set on repeat parsing.
+
+### ACC-REMOTIVE-001 — Remotive software-development RSS is parsed as a permitted feed
+
+**Priority:** Critical<br>
+**Automation:** Vitest adapter test and source-policy review<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The official Remotive software-development RSS endpoint or its fixture is
+  available.
+
+**Steps**
+
+1. Parse RSS with one item and with multiple items.
+2. Include CDATA HTML, a `content:encoded` description, publication date,
+   category, GUID, and one malformed item.
+3. Inspect normalized records and the response hash.
+
+**Expected result**
+
+- The feed URL is exactly the documented software-development feed.
+- GUID is preferred for identity, with listing URL fallback.
+- Sanitized content and Remotive listing URLs are retained with `Remotive`
+  attribution; no detail page is fetched.
+- Empty, malformed, blocked, or partial responses fail safely.
+
+**Evidence**
+
+- `src/ingestion/adapters/remotive.ts`, adapter fixtures/tests, and
+  `docs/source-policy.md`.
+
+**Last result**
+
+- Passed 2026-08-08. The adapter uses exactly the software-development RSS
+  URL, supports CDATA/content descriptions and GUID fallback, sanitizes source
+  content, and has safe HTTP/error behavior without detail-page fetching.
+
+### ACC-REMOTIVE-002 — Remotive RSS item shapes are deterministic
+
+**Priority:** High<br>
+**Automation:** Vitest adapter test<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- A fixture covers a single RSS item, an item array, missing GUID, and unsafe
+  HTML.
+
+**Steps**
+
+1. Parse the fixture twice.
+2. Inspect labels, title/company normalization, sanitization, and counts.
+
+**Expected result**
+
+- Single-item and multi-item RSS shapes produce the same normalized contract.
+- Unsafe markup is removed or sanitized and no raw payload is persisted.
+
+**Evidence**
+
+- `tests/unit/adapters.test.ts` and `tests/fixtures/remotive.ts`.
+
+**Last result**
+
+- Passed 2026-08-08. Single/multiple RSS item shapes, missing GUID, title forms,
+  unsafe markup, labels, and repeated deterministic parsing are covered by the
+  focused adapter suite.
+
+### ACC-JOBICY-001 — Jobicy engineering API is bounded and retains routing evidence
+
+**Priority:** Critical<br>
+**Automation:** Vitest adapter test and source-policy review<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The official Jobicy API is reachable or its fixture is available.
+
+**Steps**
+
+1. Parse an API response filtered by `industry=engineering` and `count=100`.
+2. Inspect title, company, description fallback, industry/type/geography/
+   level labels, publication date, and listing URL.
+3. Inspect source-policy and public attribution text.
+
+**Expected result**
+
+- Only the official engineering API boundary is requested.
+- `id` is the stable source key; the original Jobicy URL is retained.
+- Full `jobDescription` is preferred over `jobExcerpt`, unsafe markup is
+  sanitized, and attribution is `Jobicy`.
+- Public documentation requires direct Jobicy credit and original API URLs
+  for application actions.
+
+**Evidence**
+
+- `src/ingestion/adapters/jobicy.ts`, adapter fixtures/tests, and
+  `docs/source-policy.md`.
+
+**Last result**
+
+- Passed 2026-08-08. The adapter requests the official engineering-filtered
+  endpoint with a 100-result cap, retains original Jobicy URLs, prefers full
+  descriptions, sanitizes content, and documents direct Jobicy credit/routing.
+
+### ACC-JOBICY-002 — Jobicy array/scalar fields and malformed rows are deterministic
+
+**Priority:** High<br>
+**Automation:** Vitest adapter test<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- A fixture includes array and scalar industry/type values, an excerpt-only
+  description, an invalid row, and a duplicate ID.
+
+**Steps**
+
+1. Parse the fixture through the adapter parser twice.
+2. Inspect counts, source keys, labels, and sanitized fields.
+
+**Expected result**
+
+- Array and scalar forms normalize consistently.
+- Invalid rows are rejected, duplicate IDs produce one record, and parsing is
+  deterministic.
+
+**Evidence**
+
+- `tests/unit/adapters.test.ts` and `tests/fixtures/jobicy.ts`.
+
+**Last result**
+
+- Passed 2026-08-08. Array/scalar fields, excerpt fallback, malformed rows,
+  duplicate IDs, labels, and deterministic repeat parsing passed in the focused
+  adapter suite.
+
+### ACC-SOURCES-003 — All six providers have independent lifecycle and attribution
+
+**Priority:** Critical<br>
+**Automation:** Vitest, migration, API, and browser regression tests<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The new migration is applied to a clean D1 catalog.
+
+**Steps**
+
+1. Inspect provider flags, source-health rows, Workflow claims and summaries,
+   canonical priority, API taxonomy/meta, source filters, and source marks.
+2. Disable one new provider in a controlled observation and inspect retained
+   source records and canonical visibility.
+
+**Expected result**
+
+- `remotejobs`, `remotive`, and `jobicy` suspend independently.
+- Failed/partial providers do not close missing source records or advance the
+  cache as if a complete empty feed had been observed.
+- All six providers appear with stable keys and visible labels in public API,
+  UI, and metadata.
+
+**Evidence**
+
+- `0003_remotejobs_remotive_jobicy.sql`, Workflow/config tests, catalog tests,
+  API tests, and source UI files.
+
+**Last result**
+
+- Passed 2026-08-08. Six provider keys, independent flags, source-health
+  migration rows, Workflow steps, canonical priority, API metadata, source
+  filters, freshness labels, and source marks are present. Integration tests
+  confirmed partial and suspended new-provider observations retain source data
+  and do not advance absence closure.
+
+### ACC-API-003 — Taxonomy, metadata, and source filters are consistent
+
+**Priority:** Critical<br>
+**Automation:** Existing API contract tests plus new provider assertions<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- The app is running with the migration-backed or fixture-backed catalog.
+
+**Steps**
+
+1. Request `/api/v1/taxonomy` and `/api/v1/meta`.
+2. Request each new provider as a structured `source` filter.
+3. Validate responses against the Zod/OpenAPI contract.
+
+**Expected result**
+
+- The three new keys are accepted exactly once in taxonomy, metadata, source
+  filters, and freshness.
+- Attribution and listing URLs remain present in job summaries/details.
+
+**Evidence**
+
+- API tests, `src/api/contracts.ts`, and `docs/openapi.json`.
+
+**Last result**
+
+- Passed 2026-08-08. API tests validated six taxonomy/meta providers and
+  successful empty responses for `source=remotejobs`, `source=remotive`, and
+  `source=jobicy`; the OpenAPI enum and visible attribution contract match.
+
+### ACC-WORKFLOW-003 — Scheduled Workflow runs all configured providers safely
+
+**Priority:** Critical<br>
+**Automation:** Vitest workflow/config test and integration coverage<br>
+**Status:** Passed
+
+**Prerequisites**
+
+- All six flags are configured and the D1 migration is available.
+
+**Steps**
+
+1. Inspect the Workflow claim list and provider `step.do` runs.
+2. Simulate enabled, suspended, partial, and failed observations for each new
+   provider.
+3. Run finalization with the resulting provider summaries.
+
+**Expected result**
+
+- Each provider has one independently retryable step and one provider run per
+  cycle.
+- Suspended providers retain source history; partial/failed providers do not
+  advance absence closure or retention cleanup.
+- Successful/partial cycles use the existing canonical/dedupe path.
+
+**Evidence**
+
+- `src/ingestion/workflow.ts`, workflow tests, and catalog integration tests.
+
+**Last result**
+
+- Passed 2026-08-08. Workflow/config and catalog integration coverage verified
+  the six-provider claim list, independent retryable steps, suspended-provider
+  retention, partial/failed stale-state safeguards, and shared finalization.
+
+### ACC-OPS-016 — Three-source integration release gate
+
+**Priority:** Critical<br>
+**Automation:** CLI, Vitest, migration checks, strict TypeScript, build, and
+diff hygiene<br>
+**Status:** Passed
+
+**Expected result**
+
+- Adapter, migration, workflow, integration, formatting, lint, strict
+  typecheck, full tests, migration checks, and production build pass.
+- Any live check is bounded and reports endpoint access failures without
+  writing raw payloads or deploying production.
+- `TASKS.md`, `ACCEPTANCE.md`, and `WORKLOG.md` describe the same completed
+  scope and no task-owned process remains.
+
+**Evidence**
+
+- Repository command output, tests, migration files, and `WORKLOG.md`.
+
+**Last result**
+
+- Passed 2026-08-08. `pnpm validate` passed with 75 Vitest tests and 6
+  migration assertions; Playwright passed 24 desktop/mobile cases with 10
+  documented environment-gated skips; production dry-run and diff hygiene
+  passed. The bounded live check reported RemoteJobs.org's intentional
+  ten-page partial, Jobicy's 100 records, and Remotive HTTP 403 without raw
+  payload persistence or access-control bypass. No production deployment was
+  performed.
+
+### ACC-OPS-017 — Three-source release is deployed and published
+
+**Priority:** Critical<br>
+**Automation:** Wrangler migration/deploy readback, aggregate D1 checks,
+production HTTP smoke, Git, and process audit<br>
+**Status:** Pending
+
+**Prerequisites**
+
+- The Phase 16 implementation and README changes are present in the reviewed
+  checkout.
+- The production account is explicitly pinned to the Hutong531 account and
+  the production D1, Worker, Workflow, and custom domain are identified.
+
+**Steps**
+
+1. Inspect the remote D1 migration state without selecting raw provider data.
+2. Apply `0003_remotejobs_remotive_jobicy.sql` through Wrangler when pending,
+   then verify the migration ledger and aggregate schema/provider-health rows.
+3. Run the production deployment from `wrangler.production.jsonc` and inspect
+   the deployed Worker version and Workflow registration/schedule.
+4. Request `https://remotelens.co/`, `/jobs`, and `/api/v1/meta`, checking
+   bounded status, headers, and the six-provider metadata contract.
+5. Read only aggregate D1 provider/source health and recent Workflow status.
+6. Commit and push the reviewed README, implementation, tests, migration, and
+   tracker changes to the GitHub remote, then verify the pushed commit.
+7. Verify no task-owned preview, browser, Workerd, Wrangler, or listening port
+   remains.
+
+**Expected result**
+
+- The new migration is applied exactly once and the deployed Worker uses the
+  six-provider production configuration.
+- The canonical domain and public metadata endpoint return the validated
+  application response, and the Workflow remains scheduled every 12 hours.
+- Aggregate readback shows the three new provider keys without exposing raw
+  descriptions, payloads, credentials, or CV data.
+- The complete scoped change is committed and available on GitHub.
+- A Remotive source-edge block, if still present, is recorded as a bounded
+  provider failure; no access-control bypass is attempted.
+
+**Evidence**
+
+- `TASKS.md`, `WORKLOG.md`, Wrangler migration/deploy output, aggregate D1
+  readback, bounded production HTTP output, and Git push output.
+
+**Last result**
+
+- Pending production migration, deployment, live smoke, and GitHub publication.

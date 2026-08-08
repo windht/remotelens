@@ -13,7 +13,8 @@ type ApiJob = {
   slug: string
   sources: Array<{
     attribution: string
-    provider: 'jsguru' | 'remote_ok' | 'wwr'
+    provider:
+      'jsguru' | 'remote_ok' | 'wwr' | 'remotejobs' | 'remotive' | 'jobicy'
   }>
   status: JobRowData['status']
   tags: Array<{

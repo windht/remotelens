@@ -90,9 +90,15 @@ function iso(value: number | null) {
 }
 
 function sourceLabel(provider: SourceKey) {
-  if (provider === 'wwr') return 'We Work Remotely'
-  if (provider === 'jsguru') return 'JS Guru Jobs'
-  return 'Remote OK'
+  const labels: Record<SourceKey, string> = {
+    jsguru: 'JS Guru Jobs',
+    remote_ok: 'Remote OK',
+    wwr: 'We Work Remotely',
+    remotejobs: 'RemoteJobs.org',
+    remotive: 'Remotive',
+    jobicy: 'Jobicy',
+  }
+  return labels[provider]
 }
 
 function buildWhere(search: JobSearch) {

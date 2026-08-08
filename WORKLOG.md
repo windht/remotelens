@@ -2,10 +2,89 @@
 
 ## Current status
 
-**Phase:** Phase 15 — Scheduled 60-day catalog cleanup<br>
-**Current task:** None — P15-001 through P15-003 are complete<br>
-**Current acceptance:** None — ACC-RETENTION-001, ACC-RETENTION-002, and ACC-OPS-015 passed<br>
-**Goal status:** Complete
+**Phase:** Phase 16 — Official RemoteJobs.org, Remotive, and Jobicy sources<br>
+**Current task:** P16-007 — Deploy and publish the three-source release<br>
+**Current acceptance:** ACC-OPS-017 pending; ACC-REMOTEJOBS-001 through ACC-OPS-016 passed, with Remotive live access noted below<br>
+**Goal status:** In progress
+
+### Production deployment and GitHub publication pending — 2026-08-08
+
+- README, implementation, migration, tests, and the Phase 16 tracker updates
+  are present in the reviewed worktree.
+- The next controlled actions are remote migration readback/application,
+  production Worker/Workflow deployment, bounded live verification, and a
+  commit/push to the `windht/remotelens` GitHub remote.
+- Production mutation has not started. No secret values will be written to
+  trackers or command output, and Remotive's HTTP 403 will remain a bounded
+  provider failure if it persists.
+
+### Three official source integration started — 2026-08-08
+
+- The requested scope is to add RemoteJobs.org's official programming API,
+  Remotive's official software-development RSS, and Jobicy's official
+  engineering-filtered API to the existing read-only ingestion pipeline.
+- Added Phase 16 task and acceptance tracking before changing application code.
+- The implementation will keep each provider independently suspendable,
+  attributed, bounded to its official endpoint, and safe for partial/failed
+  fetches. Production deployment was deferred at that stage and is tracked by
+  P16-007 below.
+
+### Provider contracts and adapters implemented — 2026-08-08
+
+- Added the official RemoteJobs.org programming API adapter with bounded
+  ten-page pagination, programming-category admission, source-ID deduplication,
+  sanitized content, response hashes, and partial-fetch reporting.
+- Added the user-specified Remotive software-development RSS adapter with
+  CDATA/content fallback, GUID/listing identity, safe company/title parsing,
+  sanitized content, and deterministic item normalization.
+- Added the official Jobicy engineering API adapter with a 100-result cap,
+  array/scalar field normalization, description/excerpt fallback, source-ID
+  deduplication, sanitized content, and direct Jobicy URL retention.
+- Added fixtures and 13 focused adapter tests covering malformed records,
+  unsafe markup, pagination, partial fetches, duplicate IDs, and deterministic
+  repeated parsing.
+- Completed tracker/source-policy contract tasks P16-001 through P16-004.
+- Validation: `pnpm exec vitest run tests/unit/adapters.test.ts` — Passed;
+  13 tests. Formatting applied to all Phase 16 tracker, policy, adapter, and
+  fixture files.
+
+### Three-source lifecycle and public surfaces integrated — 2026-08-08
+
+- Added six-provider source unions and independent runtime flags for
+  `remotejobs`, `remotive`, and `jobicy` in Wrangler, generated Worker types,
+  D1 schema metadata, source health, canonical priority, API taxonomy/meta,
+  structured source filters, source marks, freshness labels, and fixture
+  fallback metadata.
+- Added idempotent migration
+  `drizzle/migrations/0003_remotejobs_remotive_jobicy.sql`; local Wrangler D1
+  migration applied all four commands successfully.
+- Added one retryable Workflow step per new provider and included all six
+  provider summaries in finalization. RemoteJobs page-bound and page-failure
+  paths persist `partial`/`failed` without advancing absence closure.
+- Added integration, workflow, API, migration, environment, and browser
+  regression coverage. The public API accepts the three new keys and the
+  Index renders their source options.
+
+### Phase 16 validation and bounded live check — 2026-08-08
+
+- `pnpm validate` — Passed; Prettier, ESLint, strict TypeScript, 75 Vitest
+  tests, 6 migration assertions, and the production build.
+- `pnpm test:e2e` — Passed; 24 desktop/mobile Chromium cases, including the
+  new provider-option visibility assertion; 10 existing live/production cases
+  remained environment-gated skips.
+- `pnpm cf:prod-dry-run` — Passed; production account/domain, live D1,
+  scheduled Workflow, and all six provider flags resolved.
+- `pnpm ingest:live-check` — Completed without raw-payload persistence:
+  RemoteJobs.org admitted 500 records across the ten-page safety bound and
+  correctly reported `hasMore=true` (partial by design); Jobicy admitted 100
+  engineering records; Remotive returned HTTP 403 from the source edge and
+  was reported as a provider error without bypassing access controls.
+- `git diff --check` — Passed. Playwright preview/browser processes exited;
+  ports 4173 and 8787 were not listening and no task-owned browser, preview,
+  Workerd, or Wrangler process remained.
+- P16-001 through P16-006 and ACC-SOURCES-003, ACC-API-003,
+  ACC-WORKFLOW-003, and ACC-OPS-016 are complete. P16-007 now tracks the
+  authorized production deployment and GitHub publication.
 
 ### Scheduled 60-day catalog cleanup started — 2026-08-04
 

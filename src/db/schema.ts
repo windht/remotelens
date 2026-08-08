@@ -49,7 +49,7 @@ export const ingestionSourceRuns = sqliteTable(
       .notNull()
       .references(() => ingestionCycles.id, { onDelete: 'cascade' }),
     provider: text('provider', {
-      enum: ['jsguru', 'remote_ok', 'wwr'],
+      enum: ['jsguru', 'remote_ok', 'wwr', 'remotejobs', 'remotive', 'jobicy'],
     }).notNull(),
     status: text('status', {
       enum: ['successful', 'partial', 'failed', 'suspended'],
@@ -108,7 +108,7 @@ export const sourceHealth = sqliteTable(
   'source_health',
   {
     provider: text('provider', {
-      enum: ['jsguru', 'remote_ok', 'wwr'],
+      enum: ['jsguru', 'remote_ok', 'wwr', 'remotejobs', 'remotive', 'jobicy'],
     }).primaryKey(),
     enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
     status: text('status', {
@@ -138,7 +138,7 @@ export const sourceRecords = sqliteTable(
   {
     id: text('id').primaryKey(),
     provider: text('provider', {
-      enum: ['jsguru', 'remote_ok', 'wwr'],
+      enum: ['jsguru', 'remote_ok', 'wwr', 'remotejobs', 'remotive', 'jobicy'],
     }).notNull(),
     sourceKey: text('source_key').notNull(),
     attribution: text('attribution').notNull(),

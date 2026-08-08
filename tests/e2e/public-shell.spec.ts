@@ -402,6 +402,11 @@ test.describe('no-JavaScript structured filters', () => {
   test('submits and reloads exact GET filters', async ({ page }) => {
     await page.goto('/jobs')
     await page.getByText('More exact filters', { exact: true }).click()
+    for (const provider of ['remotejobs', 'remotive', 'jobicy']) {
+      await expect(
+        page.locator(`select[name="source"] option[value="${provider}"]`),
+      ).toHaveCount(1)
+    }
     await page.locator('select[name="country"]').selectOption('CN')
     await page
       .locator('select[name="employment_type"]')

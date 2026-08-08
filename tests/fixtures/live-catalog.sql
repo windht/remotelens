@@ -88,6 +88,10 @@ SET enabled = 1, status = 'healthy', last_attempt_at = 1785312480000,
     active_count = 1, updated_at = 1785312480000
 WHERE provider IN ('remote_ok', 'wwr');
 
+UPDATE source_health
+SET enabled = 1, status = 'never_run', updated_at = 1785312480000
+WHERE provider IN ('remotejobs', 'remotive', 'jobicy');
+
 INSERT OR REPLACE INTO ingestion_cycles
   (id, cycle_key, status, started_at, finished_at, cache_epoch_before,
    cache_epoch_after)

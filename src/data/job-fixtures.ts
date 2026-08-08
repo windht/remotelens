@@ -1,4 +1,5 @@
-export type SourceKey = 'jsguru' | 'remote_ok' | 'wwr'
+export type SourceKey =
+  'jsguru' | 'remote_ok' | 'wwr' | 'remotejobs' | 'remotive' | 'jobicy'
 export type ProvenanceOrigin = 'source-stated' | 'parsed' | 'normalized'
 
 export type JobSourceFixture = {
