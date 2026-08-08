@@ -3,20 +3,43 @@
 ## Current status
 
 **Phase:** Phase 16 — Official RemoteJobs.org, Remotive, and Jobicy sources<br>
-**Current task:** P16-007 — Deploy and publish the three-source release<br>
-**Current acceptance:** ACC-OPS-017 pending; ACC-REMOTEJOBS-001 through ACC-OPS-016 passed, with Remotive live access noted below<br>
-**Goal status:** In progress
+**Current task:** None — P16-001 through P16-007 are complete<br>
+**Current acceptance:** ACC-REMOTEJOBS-001 through ACC-OPS-017 passed, with Remotive live access noted below<br>
+**Goal status:** Complete
 
-### Production deployment and GitHub publication pending — 2026-08-08
+### Production deployment and GitHub publication — 2026-08-08
 
-- README, implementation, migration, tests, and the Phase 16 tracker updates
-  are present in the reviewed worktree.
-- The next controlled actions are remote migration readback/application,
-  production Worker/Workflow deployment, bounded live verification, and a
-  commit/push to the `windht/remotelens` GitHub remote.
-- Production mutation has not started. No secret values will be written to
-  trackers or command output, and Remotive's HTTP 403 will remain a bounded
-  provider failure if it persists.
+- Preflight `pnpm validate` and `pnpm cf:prod-dry-run` passed before release;
+  the production build resolved the live D1, Workflow, six provider flags,
+  production URLs, and rate limiter.
+- Remote migration readback showed only
+  `0003_remotejobs_remotive_jobicy.sql` pending. Wrangler applied it as four
+  commands, and a second readback reported no migrations to apply. Aggregate
+  schema/health readback showed the three new tables and six provider rows.
+- Commit `78f15d2` was pushed to `origin/main` before deployment. Production
+  Worker version `28a12c16-4964-4aca-80ee-e30595f6ee60` was deployed from
+  `wrangler.production.jsonc` to `remotelens.co` and the workers.dev fallback,
+  with D1 `remotelens-catalog`, Workflow
+  `remotelens-catalog-ingestion`, and all six provider flags bound.
+- Triggered Workflow instance
+  `7b2ed148-f854-434b-9f67-3c01cdca72b9` completed successfully in 35 seconds.
+  RemoteJobs.org admitted 500 records and reported the intentional ten-page
+  `partial`; Jobicy admitted 100 engineering records successfully; Remotive
+  returned HTTP 403 and was stored as a bounded provider `failed` result. The
+  final cache epoch was `epoch:1b6dcb539218d7c36d73db07`, and retention cleanup
+  skipped the partial cycle as designed.
+- Aggregate production D1 readback reported active rows for RemoteJobs.org
+  (500) and Jobicy (100), with Remotive at zero active rows and one
+  consecutive failure; the metadata endpoint reported 728 total active jobs
+  and all six provider keys.
+- Production HTTP smoke passed: `/`, `/jobs`, `/api/v1/meta`,
+  `/api/v1/taxonomy`, and `source=remotejobs`, `source=remotive`, and
+  `source=jobicy` all returned HTTP 200. `/jobs` exposed the expected ISR
+  cache headers. A transient parallel TLS read was retried successfully.
+- `git diff --check` and final tracker formatting passed. No task-owned
+  preview, browser, Workerd, Wrangler, or listening port remains. Remotive's
+  source-edge 403 was not bypassed and remains the only external provider
+  access limitation.
 
 ### Three official source integration started — 2026-08-08
 

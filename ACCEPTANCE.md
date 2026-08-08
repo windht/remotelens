@@ -3654,7 +3654,7 @@ diff hygiene<br>
 **Priority:** Critical<br>
 **Automation:** Wrangler migration/deploy readback, aggregate D1 checks,
 production HTTP smoke, Git, and process audit<br>
-**Status:** Pending
+**Status:** Passed
 
 **Prerequisites**
 
@@ -3697,4 +3697,20 @@ production HTTP smoke, Git, and process audit<br>
 
 **Last result**
 
-- Pending production migration, deployment, live smoke, and GitHub publication.
+- Passed 2026-08-08. Remote migration readback initially showed only
+  `0003_remotejobs_remotive_jobicy.sql` pending; Wrangler applied it
+  successfully and the next readback reported no migrations to apply. The
+  validated commit `78f15d2` was pushed to `origin/main`. Production Worker
+  version `28a12c16-4964-4aca-80ee-e30595f6ee60` deployed from
+  `wrangler.production.jsonc` with the six provider flags, D1, Workflow, and
+  `0 */12 * * *` schedule configuration. Workflow instance
+  `7b2ed148-f854-434b-9f67-3c01cdca72b9` completed successfully in 35 seconds:
+  RemoteJobs.org admitted 500 records with the intentional ten-page partial,
+  Jobicy admitted 100 records successfully, and Remotive recorded HTTP 403 as
+  a bounded failure. Final cache epoch was
+  `epoch:1b6dcb539218d7c36d73db07`; retention cleanup correctly skipped the
+  partial cycle. Production `/`, `/jobs`, `/api/v1/meta`, `/api/v1/taxonomy`,
+  and all three new `source` filters returned HTTP 200. The metadata response
+  reported 728 active jobs and all six provider keys, including 500 active
+  RemoteJobs.org and 100 active Jobicy records. No raw provider payloads or
+  secrets were read back, and no task-owned process or port remained.

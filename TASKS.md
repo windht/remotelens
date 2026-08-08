@@ -433,7 +433,7 @@ are complete.
     typecheck, full tests, build, and diff hygiene checks; record any bounded
     live-fetch result without deploying production.
   - Acceptance: `ACC-OPS-016`
-- [ ] **P16-007 — Deploy and publish the three-source release**
+- [x] **P16-007 — Deploy and publish the three-source release**
   - Review the production migration state, apply the new D1 migration if it is
     pending, deploy the validated Worker and Workflow configuration, and verify
     the canonical domain, public metadata, Workflow schedule, and bounded
